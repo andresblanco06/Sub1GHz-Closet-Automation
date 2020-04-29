@@ -1,0 +1,13 @@
+/Release/
+
+/application/lpstk/sensor_controller/iar_tirtos/
+/application/lpstk/sensor_controller/ccs_tirtos/
+
+*/ex_include_tirtos.h
+*/main_tirtos.c
+*/sce.lst
+*/scif.lst
+*/scif_doxyfile
+*/scif_how_to_use.html
+*/scif_osal_tirtos.c
+*/scif_run_doxygen.bat
