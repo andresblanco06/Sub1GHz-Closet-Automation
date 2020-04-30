@@ -1,4 +1,4 @@
-#ifdef !SCS
+#ifndef CLOSET
 /// \addtogroup module_scif_driver_setup
 //@{
 #include "scif.h"

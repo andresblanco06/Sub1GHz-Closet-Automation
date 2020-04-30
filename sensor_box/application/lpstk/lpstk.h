@@ -65,7 +65,7 @@ extern "C"
 /*!
  *  @brief    A handler to receive accelerometer tilt alert callbacks.
  */
-typedef void (*Lpstk_AccelTiltCb)(void);
+typedef void (*Lpstk_scCb)(void);
 
 /* LPSTK Events */
 typedef enum
@@ -85,7 +85,7 @@ typedef enum
 /******************************************************************************
  Function Prototypes
  *****************************************************************************/
-void Lpstk_init(void *evntHandle, Lpstk_AccelTiltCb accelTiltCb);
+void Lpstk_init(void *evntHandle, Lpstk_scCb scTaskCb);
 void Lpstk_processEvents(void);
 void Lpstk_initSensorReadTimer(Lpstk_SensorMask sensors, uint32_t clockPeriod);
 void Lpstk_setSensorReadTimer(Lpstk_SensorMask sensors, uint32_t clockPeriod);

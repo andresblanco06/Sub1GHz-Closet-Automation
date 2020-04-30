@@ -286,7 +286,7 @@ static void processSensorRampMsgEvt(void);
 #endif
 
 #ifdef LPSTK
-static void lpstkAccelerometerTiltCb(void);
+static void lpstkScCb(void);
 #endif /* LPSTK */
 
 static void processConfigRequest(ApiMac_mcpsDataInd_t *pDataInd);
@@ -483,9 +483,9 @@ void Sensor_init(void)
 #endif
 #ifdef LPSTK
     configSettings.frameControl |= Smsgs_dataFields_humiditySensor   |
-                                   Smsgs_dataFields_lightSensor      |
-                                   Smsgs_dataFields_hallEffectSensor |
-                                   Smsgs_dataFields_accelSensor;
+                                   Smsgs_dataFields_lightSensor      ;
+//                                Smsgs_dataFields_hallEffectSensor
+//                                Smsgs_dataFields_accelSensor
 #endif /* LPSTK */
     configSettings.frameControl |= Smsgs_dataFields_msgStats;
     configSettings.frameControl |= Smsgs_dataFields_configSettings;
@@ -521,6 +521,7 @@ void Sensor_init(void)
     Ssf_init(sem);
 
 #ifdef LPSTK
+#ifdef BLE_START
     /*
      * NOTE!!
      * OAD_open() must be called before the LPSTK sensors are initialized because there
@@ -531,17 +532,16 @@ void Sensor_init(void)
 
     /* Wait for BLE application to finish initializing the BLE OAD Module */
     Ssf_PendAppSem();
-
+#endif
     /* This initializes all LPSTK's sensors, LEDs, and Buttons */
-    Lpstk_init(sem, lpstkAccelerometerTiltCb);
+    Lpstk_init(sem, lpstkScCb);
 
     /* Set up a periodic read for sensors specified by the sensor mask */
-    Lpstk_initSensorReadTimer((Lpstk_SensorMask)(LPSTK_HUMIDITY|
-                                                LPSTK_TEMPERATURE|
-                                                LPSTK_LIGHT|
-                                                //LPSTK_HALL_EFFECT
-                                                LPSTK_ACCELEROMETER),
-                                                2000);
+    Lpstk_initSensorReadTimer((Lpstk_SensorMask)(LPSTK_HUMIDITY |
+                                                    LPSTK_TEMPERATURE |
+                                                    LPSTK_LIGHT |
+                                                    //LPSTK_ACCELEROMETER |
+                                                    LPSTK_HALL_EFFECT),2000);
 #endif /* LPSTK */
 
 #ifdef FEATURE_SECURE_COMMISSIONING
@@ -2506,8 +2506,9 @@ static void Sensor_dmmPausePolicyCb(uint16_t pause)
  *
  * @brief   SENSOR CONTROLLER Accelerometer CB when Tilt is detected
  */
-static void lpstkAccelerometerTiltCb(void)
+static void lpstkScCb(void)
 {
+#ifndef CLOSET
     Lpstk_Accelerometer accel;
     uint16_t tempFrameCtrl = configSettings.frameControl;
     Lpstk_getAccelerometer(&accel);
@@ -2519,6 +2520,9 @@ static void lpstkAccelerometerTiltCb(void)
     configSettings.frameControl = Smsgs_dataFields_accelSensor;
     processSensorMsgEvt();
     configSettings.frameControl = tempFrameCtrl;
+#else
+//TODO: Get data from SC_Task
+#endif
 }
 #endif /* LPSTK */
 

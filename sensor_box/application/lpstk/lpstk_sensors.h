@@ -57,7 +57,11 @@
 
 #include <ti/drivers/GPIO.h>
 
+#ifndef CLOSET
 #include "lpstk/adxl362/scif.h"
+#else
+#include "lpstk/sensor_controller/source/scif.h"
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -104,7 +108,7 @@ void Lpstk_initHumidityAndTempSensor(float hHiLim, float hLoLim,
                                      GPIO_CallbackFxn hdc2010Callback);
 void Lpstk_initLightSensor(float hHiLim, float hLoLim,GPIO_CallbackFxn opt3001Callback);
 void Lpstk_initHallEffectSensor();
-void Lpstk_initSensorControllerAccelerometer(SCIF_VFPTR scTaskAlertCallback);
+void Lpstk_initSensorController(SCIF_VFPTR scTaskAlertCallback);
 
 uint8_t Lpstk_openHumidityTempSensor(void);
 uint8_t Lpstk_openLightSensor(void);

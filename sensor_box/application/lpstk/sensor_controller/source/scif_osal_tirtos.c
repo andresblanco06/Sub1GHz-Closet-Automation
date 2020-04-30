@@ -1,3 +1,4 @@
+
 /// \addtogroup module_scif_osal
 //@{
 #ifdef SCIF_INCLUDE_OSAL_C_FILE
@@ -5,7 +6,7 @@
 #include <ti/devices/DeviceFamily.h>
 #include DeviceFamily_constructPath(inc/hw_nvic.h)
 #include DeviceFamily_constructPath(driverlib/cpu.h)
-#include "scif_osal_tirtos.h"
+#include <sensor_controller/source/scif_osal_tirtos.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/knl/Clock.h>
 #include <ti/sysbios/family/arm/m3/Hwi.h>

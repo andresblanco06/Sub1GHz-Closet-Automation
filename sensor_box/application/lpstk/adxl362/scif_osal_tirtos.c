@@ -1,4 +1,4 @@
-#ifdef !SCS
+#ifndef CLOSET
 /// \addtogroup module_scif_osal
 //@{
 #ifdef SCIF_INCLUDE_OSAL_C_FILE

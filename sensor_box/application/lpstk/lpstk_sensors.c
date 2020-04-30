@@ -53,13 +53,12 @@
 #include <ti/drivers/I2C.h>
 #include <ti/drivers/ADC.h>
 
+#ifndef CLOSET
 #include <ti/common/sail/hdc2010/hdc2010.h>
 #include <ti/common/sail/opt3001/opt3001.h>
 #include <ti/common/sail/drv5055/drv5055.h>
-
 #include "lpstk/adxl362/scif.h"
-
-#ifdef SCS
+#else
 #include "lpstk/sensor_controller/source/scif.h"
 #endif
 
@@ -67,7 +66,7 @@
 
 #include "lpstk/lpstk_sensors.h"
 
-#ifdef !SCS
+#ifndef CLOSET
 /*
  *  =============================== OPT3001 ===============================
  */
@@ -139,6 +138,7 @@ static volatile bool sc_ready;
 static void scCtrlReadyCallback(void);
 
 /* Local Functions */
+#ifndef CLOSET
 
 static void closeI2C(void)
 {
@@ -148,13 +148,14 @@ static void closeI2C(void)
         i2cHandle = NULL;
     }
 }
-
+#endif
 /* Public Funtions */
 
 void Lpstk_initHumidityAndTempSensor(float hHiLim, float hLoLim,
                                      float tHiLim, float tLoLim,
                                      GPIO_CallbackFxn hdc2010Callback)
 {
+#ifndef CLOSET
     /* Call driver init functions */
     GPIO_init();
     I2C_init();
@@ -181,10 +182,14 @@ void Lpstk_initHumidityAndTempSensor(float hHiLim, float hLoLim,
         tempHiLim = tHiLim;
         tempLoLim = tLoLim;
     }
+#else
+    //TODO: init HDC2080 call open
+#endif
 }
 
 void Lpstk_initLightSensor(float hHiLim, float hLoLim,GPIO_CallbackFxn opt3001Callback)
 {
+#ifndef CLOSET
     /* Call driver init functions */
     GPIO_init();
     I2C_init();
@@ -207,17 +212,21 @@ void Lpstk_initLightSensor(float hHiLim, float hLoLim,GPIO_CallbackFxn opt3001Ca
         luxHiLim = OPT3001_IGNORE;
         luxLoLim = OPT3001_IGNORE;
     }
-
+#else
+    //TODO: init opt3011 call open
+#endif
 }
 
 void Lpstk_initHallEffectSensor()
 {
+#ifndef CLOSET
     /* Call driver init functions */
     ADC_init();
     ADC_Params_init(&adcParams);
+#endif
 }
 
-void Lpstk_initSensorControllerAccelerometer(SCIF_VFPTR scTaskAlertCallback)
+void Lpstk_initSensorController(SCIF_VFPTR scTaskAlertCallback)
 {
     // Initialize and start the Sensor Controller
     scifOsalInit();
@@ -228,9 +237,10 @@ void Lpstk_initSensorControllerAccelerometer(SCIF_VFPTR scTaskAlertCallback)
 
 uint8_t Lpstk_openHumidityTempSensor(void)
 {
+    uint8_t openStatus = LPSTK_SUCCESS;
+#ifndef CLOSET
     /* Turn on TMP116 Sensor */
     GPIO_write(CONFIG_GPIO_HDC_PWR, 1);
-    uint8_t openStatus = LPSTK_SUCCESS;
     if (i2cHandle == NULL)
     {
         i2cHandle = I2C_open(CONFIG_I2C_0, &i2cParams);
@@ -260,14 +270,20 @@ uint8_t Lpstk_openHumidityTempSensor(void)
             HDC2010_triggerMeasurement(hdc2010Handle);
         }
     }
+#else
+    //TODO: open hdc2080
     return openStatus;
+
+#endif
+
 }
 
 uint8_t Lpstk_openLightSensor(void)
 {
+    uint8_t openStatus = LPSTK_SUCCESS;
+#ifndef CLOSET
     GPIO_write(CONFIG_GPIO_OPT_PWR, 1);
 
-    uint8_t openStatus = LPSTK_SUCCESS;
     if (i2cHandle == NULL)
     {
         i2cHandle = I2C_open(CONFIG_I2C_0, &i2cParams);
@@ -293,14 +309,19 @@ uint8_t Lpstk_openLightSensor(void)
             OPT3001_enableInterrupt(opt3001Handle);
         }
     }
+#else
+    //TODO: open opt3001
     return openStatus;
+#endif
+
 }
 
 uint8_t Lpstk_openHallEffectSensor(void)
 {
+    uint8_t openStatus = LPSTK_NULL_HANDLE;
+#ifndef CLOSET
     GPIO_write(CONFIG_GPIO_DRV_PWR, 1);
 
-    uint8_t openStatus = LPSTK_NULL_HANDLE;
     if(adcHandle == NULL)
     {
         ADC_Params_init(&adcParams);
@@ -310,14 +331,16 @@ uint8_t Lpstk_openHallEffectSensor(void)
     {
         openStatus = LPSTK_SUCCESS;
     }
-
+#endif
+    //TODO: feature
     return openStatus;
 }
 
 uint8_t Lpstk_openAccelerometerSensor(void)
 {
-    uint8_t status = LPSTK_SUCCESS;
 
+    uint8_t status = LPSTK_SUCCESS;
+#ifndef CLOSET
     // Only enable if not already enabled
     if (!(scifGetActiveTaskIds() & (1 << SCIF_SPI_ACCELEROMETER_TASK_ID)))
     {
@@ -326,61 +349,85 @@ uint8_t Lpstk_openAccelerometerSensor(void)
         // Wait for sensor controller ready callback
         while (!sc_ready);
     }
+#else
+    //TODO: feature
     return status;
+#endif
 }
 
 bool Lpstk_readTemperatureSensor(float *temperature)
 {
     bool successRead = false;
+#ifndef CLOSET
     if(hdc2010Handle)
     {
         successRead = HDC2010_getTemp(hdc2010Handle, HDC2010_CELSIUS, temperature);
     }
+#else
     return successRead;
+    //TODO: feature
+#endif
 }
 
 bool Lpstk_readHumiditySensor(float *humidity)
 {
     bool successRead = false;
+#ifndef CLOSET
     if(hdc2010Handle)
     {
         successRead = HDC2010_getHum(hdc2010Handle, humidity);
     }
+#else
     return successRead;
+    //TODO: feature
+#endif
 }
 
 bool Lpstk_readLightSensor(float *lux)
 {
     bool successRead = false;
+#ifndef CLOSET
     if(opt3001Handle)
     {
         successRead = OPT3001_getLux(opt3001Handle, lux);
     }
+#else
     return successRead;
+    //TODO: feature
+#endif
 }
 
 bool Lpstk_readHallEffectSensor(float *flux)
 {
     bool successRead = false;
+#ifndef CLOSET
     if(adcHandle)
     {
         *flux = DRV5055_getMagneticFlux(adcHandle, DRV5055A4_3_3V, OFFSET, DRV5055_3_3V);
         successRead = true;
     }
+#else
     return successRead;
+    //TODO: feature
+#endif
 }
 
 void Lpstk_readAccelerometerSensor(Lpstk_Accelerometer *accel)
 {
+#ifndef CLOSET
     accel->x = scifTaskData.spiAccelerometer.output.x;
     accel->xTiltDet = scifTaskData.spiAccelerometer.output.xTiltDet;
     accel->y = scifTaskData.spiAccelerometer.output.y;
     accel->yTiltDet = scifTaskData.spiAccelerometer.output.yTiltDet;
     accel->z = scifTaskData.spiAccelerometer.output.z;
+#else
+//TODO: feature
+#endif
 }
 
 void Lpstk_shutdownHumidityTempSensor(void)
 {
+#ifndef CLOSET
     if(hdc2010Handle != NULL)
     {
         /* close HDC2010 sensor with custom Params */
@@ -392,10 +439,15 @@ void Lpstk_shutdownHumidityTempSensor(void)
     GPIO_write(CONFIG_GPIO_HDC_PWR, 0);
     /* try to close i2c peripheral to enter low power mode */
     closeI2C();
+#else
+    //TODO: feature
+
+#endif
 }
 
 void Lpstk_shutdownLightSensor(void)
 {
+#ifndef CLOSET
     if(opt3001Handle != NULL)
     {
         /* close OPT3001 sensor with custom Params */
@@ -407,10 +459,15 @@ void Lpstk_shutdownLightSensor(void)
     GPIO_write(CONFIG_GPIO_OPT_PWR, 0);
     /* try to close i2c peripheral to enter low power mode */
     closeI2C();
+#else
+    //TODO: feature
+
+#endif
 }
 
 void Lpstk_shutdownHallEffectSensor(void)
 {
+#ifndef CLOSET
     if(adcHandle != NULL)
     {
         /* close ADC peripheral to enter low power mode */
@@ -418,19 +475,27 @@ void Lpstk_shutdownHallEffectSensor(void)
     }
     /* Turn off OPT3001 Sensor */
     GPIO_write(CONFIG_GPIO_DRV_PWR, 0);
+#else
 
+    //TODO: feature
+#endif
 }
 
 void Lpstk_shutdownAccelerometerSensor(void)
 {
+#ifndef CLOSET
     /* Only disable if currently enabled */
     if (scifGetActiveTaskIds() & (1 << SCIF_SPI_ACCELEROMETER_TASK_ID))
     {
-      // Start the "SPI Accelerometer" Sensor Controller task
+      // Stop the "SPI Accelerometer" Sensor Controller task
       scifStopTasksNbl(1 << SCIF_SPI_ACCELEROMETER_TASK_ID);
       // Wait for sensor controller ready callback
       sc_ready = false;
     }
+#else
+
+    //TODO: feature
+#endif
 }
 
 static void scCtrlReadyCallback(void)

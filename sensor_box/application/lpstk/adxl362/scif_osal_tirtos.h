@@ -1,4 +1,4 @@
-#ifdef !SCS
+#ifdef !CLOSET
 /** \addtogroup module_scif_osal Operating System Abstraction Layer
   *
   * \section section_osal_overview Overview

@@ -1,4 +1,4 @@
-#ifdef !SCS
+#ifdef !CLOSET
 /** \addtogroup module_scif_generic_interface Generic Driver Interface
   *
   * \section section_usage Usage

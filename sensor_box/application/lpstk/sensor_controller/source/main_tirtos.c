@@ -68,8 +68,8 @@
 //  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //****************************************************************************/
-#include "ex_include_tirtos.h"
-#include "scif.h"
+#include <sensor_controller/source/ex_include_tirtos.h>
+#include <sensor_controller/source/scif.h>
 #include "stdio.h"
 #include "string.h"
 

@@ -1,6 +1,6 @@
 /// \addtogroup module_scif_generic_interface
 //@{
-#include "scif_framework.h"
+#include <sensor_controller/source/scif_framework.h>
 #include <ti/devices/DeviceFamily.h>
 #include DeviceFamily_constructPath(inc/hw_types.h)
 #include DeviceFamily_constructPath(inc/hw_memmap.h)
@@ -32,7 +32,7 @@ static void scifSetMcuwusel(int index, uint32_t wuSignal);
 
 /// Import OSAL
 #define SCIF_INCLUDE_OSAL_C_FILE
-#include "scif_osal_tirtos.c"
+#include <sensor_controller/source/scif_osal_tirtos.c>
 
 
 

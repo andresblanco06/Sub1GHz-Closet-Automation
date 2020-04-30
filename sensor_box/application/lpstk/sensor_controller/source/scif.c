@@ -1,7 +1,7 @@
 /// \addtogroup module_scif_driver_setup
 //@{
-#include "scif.h"
-#include "scif_framework.h"
+#include <sensor_controller/source/scif.h>
+#include <sensor_controller/source/scif_framework.h>
 #include <ti/devices/DeviceFamily.h>
 #include DeviceFamily_constructPath(inc/hw_types.h)
 #include DeviceFamily_constructPath(inc/hw_memmap.h)

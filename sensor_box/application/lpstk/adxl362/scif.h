@@ -1,4 +1,4 @@
-#ifdef !SCS
+#ifdef !CLOSET
 /** \mainpage Driver Overview
   *
   * \section section_drv_info Driver Information
@@ -141,8 +141,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "scif_framework.h"
-#include "scif_osal_tirtos.h"
+#include <adxl362/scif_framework.h>
+#include <adxl362/scif_osal_tirtos.h>
 
 
 /// Target chip name

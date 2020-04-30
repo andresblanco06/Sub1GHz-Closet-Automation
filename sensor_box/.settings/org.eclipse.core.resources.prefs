@@ -1,6 +1,16 @@
 eclipse.preferences.version=1
 encoding//Release/application/cui/subdir_rules.mk=UTF-8
 encoding//Release/application/cui/subdir_vars.mk=UTF-8
+encoding//Release/application/lpstk/adxl362/subdir_rules.mk=UTF-8
+encoding//Release/application/lpstk/adxl362/subdir_vars.mk=UTF-8
+encoding//Release/application/lpstk/sensor_controller/projects/ccs_tirtos/subdir_rules.mk=UTF-8
+encoding//Release/application/lpstk/sensor_controller/projects/ccs_tirtos/subdir_vars.mk=UTF-8
+encoding//Release/application/lpstk/sensor_controller/projects/iar_tirtos/subdir_rules.mk=UTF-8
+encoding//Release/application/lpstk/sensor_controller/projects/iar_tirtos/subdir_vars.mk=UTF-8
+encoding//Release/application/lpstk/sensor_controller/source/subdir_rules.mk=UTF-8
+encoding//Release/application/lpstk/sensor_controller/source/subdir_vars.mk=UTF-8
+encoding//Release/application/lpstk/subdir_rules.mk=UTF-8
+encoding//Release/application/lpstk/subdir_vars.mk=UTF-8
 encoding//Release/application/sensor/flash_interface/rtos/subdir_rules.mk=UTF-8
 encoding//Release/application/sensor/flash_interface/rtos/subdir_vars.mk=UTF-8
 encoding//Release/application/sensor/link_controller/subdir_rules.mk=UTF-8

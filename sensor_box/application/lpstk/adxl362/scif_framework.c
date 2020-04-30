@@ -1,4 +1,4 @@
-#ifdef !SCS
+#ifndef CLOSET
 /// \addtogroup module_scif_generic_interface
 //@{
 #include "scif_framework.h"

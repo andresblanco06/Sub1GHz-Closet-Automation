@@ -71,7 +71,7 @@ typedef enum
     LPSTK_EV_SENSOR_READ_AND_SHUTDOWN    = Event_Id_02,
     LPSTK_EV_SENSOR_READ                 = Event_Id_03,
     LPSTK_EV_SENSOR_SHUTDOWN             = Event_Id_04,
-    LPSTK_EV_ACCEL_TILT_ALERT            = Event_Id_05,
+    LPSTK_EV_SC_ALERT            = Event_Id_05,
 } Lpstk_Events;
 
 typedef struct
@@ -115,7 +115,7 @@ static Clock_Handle sensor_startUpClockHandle;
 static Clock_Struct sensor_readClock;
 static Clock_Handle sensor_readClockHandle;
 static Lpstk_SensorMask periodicReadSensors;
-static Lpstk_AccelTiltCb accelTiltCB;
+static Lpstk_scCb scCB;
 
 /******************************************************************************
  Local function prototypes
@@ -124,7 +124,7 @@ static void setEvent(uint16_t eventMask);
 static void clearEvent(uint16_t eventMask);
 static void processSensorRead(Lpstk_SensorMask sensors, bool shutdown);
 static void powerUpSensors(Lpstk_SensorMask sensors);
-static void scAccelTaskAlertCallback(void);
+static void scTaskAlertCallback(void);
 static void sensorReadTimeoutCallback(UArg a0);
 
 /******************************************************************************
@@ -136,20 +136,20 @@ static void sensorReadTimeoutCallback(UArg a0);
 
  Public function defined in lpstk.h
  */
-void Lpstk_init(void *evntHandle, Lpstk_AccelTiltCb accelCb)
+void Lpstk_init(void *evntHandle, Lpstk_scCb scTaskCb)
 {
     applicationSem = evntHandle;
-    accelTiltCB = accelCb;
-
+    scCB = scTaskCb;
     Lpstk_initHumidityAndTempSensor(0, 0, 0, 0, NULL);
     Lpstk_initLightSensor(0, 0,NULL);
     Lpstk_initHallEffectSensor();
-    Lpstk_initSensorControllerAccelerometer(scAccelTaskAlertCallback);
     Lpstk_openAccelerometerSensor();
+    Lpstk_initSensorController(scTaskAlertCallback);
 }
 
 void Lpstk_initSensorReadTimer(Lpstk_SensorMask sensors, uint32_t clockPeriod)
 {
+#ifndef CLOSET
     Clock_Params clockParams;
 
     periodicReadSensors = sensors;
@@ -193,10 +193,12 @@ void Lpstk_initSensorReadTimer(Lpstk_SensorMask sensors, uint32_t clockPeriod)
     clockParams.startFlag = true;
     Clock_construct(&sensor_readClock, sensorReadTimeoutCallback, clockTicks, &clockParams);
     sensor_readClockHandle = Clock_handle(&sensor_readClock);
+#endif
 }
 
 void Lpstk_setSensorReadTimer(Lpstk_SensorMask sensors, uint32_t clockPeriod)
 {
+#ifndef CLOSET
     uint32_t clockTicks = (clockPeriod - SENSOR_STARTUP_TIME) * (1000 / Clock_tickPeriod);
     periodicReadSensors = sensors;
 
@@ -205,6 +207,7 @@ void Lpstk_setSensorReadTimer(Lpstk_SensorMask sensors, uint32_t clockPeriod)
     Clock_setTimeout(sensor_readClockHandle, clockTicks);
     /* Start clock instance */
     Clock_start(sensor_readClockHandle);
+#endif
 }
 
 /*!
@@ -221,7 +224,6 @@ void Lpstk_processEvents(void)
     }
     if(lpstkEvents & LPSTK_EV_FACTORY_DEFAULT)
     {
-
         clearEvent(LPSTK_EV_FACTORY_DEFAULT);
     }
     if(lpstkEvents & LPSTK_EV_SENSOR_POWER_UP)
@@ -261,18 +263,20 @@ void Lpstk_processEvents(void)
         lpstkSensorMask.shutdownMask = (Lpstk_SensorMask)0;
         clearEvent(LPSTK_EV_SENSOR_SHUTDOWN);
     }
-    if(lpstkEvents & LPSTK_EV_ACCEL_TILT_ALERT)
+    if(lpstkEvents & LPSTK_EV_SC_ALERT)
     {
-        processSensorRead((Lpstk_SensorMask)LPSTK_ACCELEROMETER, false);
+        processSensorRead((Lpstk_SensorMask)(LPSTK_HUMIDITY      |
+                                             LPSTK_TEMPERATURE   |
+                                             LPSTK_LIGHT), false);
         // Acknowledge the ALERT event
         scifAckAlertEvents();
 
-        if(accelTiltCB)
+        if(scCB)
         {
-            accelTiltCB();
+            scCB();
         }
 
-        clearEvent(LPSTK_EV_ACCEL_TILT_ALERT);
+        clearEvent(LPSTK_EV_SC_ALERT);
     }
 }
 
@@ -348,6 +352,7 @@ static void clearEvent(uint16_t eventMask)
  */
 static void sensorReadTimeoutCallback(UArg a0)
 {
+#ifndef CLOSET
     if(a0 == LPSTK_EV_SENSOR_READ_AND_SHUTDOWN)
     {
         lpstkSensorMask.readAndShutdownMask = periodicReadSensors;
@@ -357,14 +362,15 @@ static void sensorReadTimeoutCallback(UArg a0)
         lpstkSensorMask.powerupMask = periodicReadSensors;
     }
     setEvent(a0);
+#endif
 }
 
-static void scAccelTaskAlertCallback(void)
+static void scTaskAlertCallback(void)
 {
   // Clear the ALERT interrupt source
   scifClearAlertIntSource();
   // Trigger an event to read the accelerometer
-  setEvent(LPSTK_EV_ACCEL_TILT_ALERT);
+  setEvent(LPSTK_EV_SC_ALERT);
 }
 
 static void powerUpSensors(Lpstk_SensorMask sensors)

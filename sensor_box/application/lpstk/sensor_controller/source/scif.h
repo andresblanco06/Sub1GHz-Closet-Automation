@@ -164,10 +164,10 @@
 #ifndef SCIF_H
 #define SCIF_H
 
+#include <sensor_controller/source/scif_framework.h>
+#include <sensor_controller/source/scif_osal_tirtos.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "scif_framework.h"
-#include "scif_osal_tirtos.h"
 
 
 /// Target chip name
