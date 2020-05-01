@@ -1529,18 +1529,21 @@ static void readSensors(void)
     tempSensor.objectTemp =  tempSensor.ambienceTemp;
 #endif
 #ifdef LPSTK
-    Lpstk_Accelerometer accel;
+#ifdef CLOSET
     humiditySensor.temp = (uint16_t)Lpstk_getTemperature();
     humiditySensor.humidity = (uint16_t)Lpstk_getHumidity();
-    hallEffectSensor.flux = Lpstk_getMagFlux();
     lightSensor.rawData = (uint16_t)Lpstk_getLux();
+#else
+    hallEffectSensor.flux = Lpstk_getMagFlux();
+    Lpstk_Accelerometer accel;
     Lpstk_getAccelerometer(&accel);
     accelerometerSensor.xAxis = accel.x;
     accelerometerSensor.yAxis = accel.y;
     accelerometerSensor.zAxis = accel.z;
     accelerometerSensor.xTiltDet = accel.xTiltDet;
     accelerometerSensor.yTiltDet = accel.yTiltDet;
-#endif /* LPSTK */
+#endif
+#endif/* LPSTK */
 }
 
 /*!
@@ -2522,6 +2525,7 @@ static void lpstkScCb(void)
     configSettings.frameControl = tempFrameCtrl;
 #else
 //TODO: Get data from SC_Task
+
 #endif
 }
 #endif /* LPSTK */

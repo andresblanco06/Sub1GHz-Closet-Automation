@@ -44,7 +44,6 @@
 
 # Kernel Module Compile Results
 *.mod*
-*.cmd
 .tmp_versions/
 modules.order
 Module.symvers
@@ -53,3 +52,4 @@ dkms.conf
 /.metadata/
 
 /*_sensor_lpstk_tirtos/
+*/sensor_controller/projects/

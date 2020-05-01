@@ -271,7 +271,17 @@ uint8_t Lpstk_openHumidityTempSensor(void)
         }
     }
 #else
-    //TODO: open hdc2080
+
+    if (!(scifGetActiveTaskIds() & (1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID)))
+    {
+        scifTaskData.i2cTempAndHumiditySensor.cfg.tempChangeThr = 10;
+        scifTaskData.i2cTempAndHumiditySensor.cfg.humChangeThr = 10;
+        // Start the "SPI Accelerometer" Sensor Controller task
+        scifStartTasksNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID);
+        // Wait for sensor controller ready callback
+        while (!sc_ready);
+    }
+
     return openStatus;
 
 #endif
@@ -311,6 +321,18 @@ uint8_t Lpstk_openLightSensor(void)
     }
 #else
     //TODO: open opt3001
+    if (!(scifGetActiveTaskIds() & (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID)))
+    {
+        // Set the Sensor Controller task tick interval to 1 second
+        scifStartRtcTicksNow(0x00010000);
+        // Configure to trigger interrupt at first result, and start the Sensor Controller's I2C Light
+        // Sensor task (not to be confused with OS tasks)
+        int lowThreshold  = scifTaskData.i2cLightSensor.cfg.lowThreshold  = 0;
+        int highThreshold = scifTaskData.i2cLightSensor.cfg.highThreshold = 65535;
+        // Wait for sensor controller ready callback
+        while (!sc_ready);
+    }
+
     return openStatus;
 #endif
 
@@ -364,8 +386,12 @@ bool Lpstk_readTemperatureSensor(float *temperature)
         successRead = HDC2010_getTemp(hdc2010Handle, HDC2010_CELSIUS, temperature);
     }
 #else
-    return successRead;
     //TODO: feature
+    uint16_t bvReport = scifTaskData.i2cTempAndHumiditySensor.output.bvReport;
+    successRead = ((bool) !(bvReport & SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_REPORT_I2C_ERROR));
+    int16_t temp = scifTaskData.i2cTempAndHumiditySensor.output.pTempLog[scifTaskData.i2cTempAndHumiditySensor.state.logPos];
+    *temperature = ((float) temp) / 64.0;
+    return successRead;
 #endif
 }
 
@@ -378,6 +404,10 @@ bool Lpstk_readHumiditySensor(float *humidity)
         successRead = HDC2010_getHum(hdc2010Handle, humidity);
     }
 #else
+    uint16_t bvReport = scifTaskData.i2cTempAndHumiditySensor.output.bvReport;
+    successRead = ((bool) !(bvReport & SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_REPORT_I2C_ERROR));
+    uint16_t hum = scifTaskData.i2cTempAndHumiditySensor.output.pHumLog[scifTaskData.i2cTempAndHumiditySensor.state.logPos];
+    *humidity = ((float) hum) / 64.0;
     return successRead;
     //TODO: feature
 #endif
@@ -392,6 +422,9 @@ bool Lpstk_readLightSensor(float *lux)
         successRead = OPT3001_getLux(opt3001Handle, lux);
     }
 #else
+    uint16_t bvReport = scifTaskData.i2cLightSensor.state.i2cStatus;
+    successRead = ((bool) !bvReport);
+    uint16_t value = scifTaskData.i2cLightSensor.output.value;
     return successRead;
     //TODO: feature
 #endif
@@ -441,7 +474,13 @@ void Lpstk_shutdownHumidityTempSensor(void)
     closeI2C();
 #else
     //TODO: feature
-
+    if (scifGetActiveTaskIds() & (1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID))
+    {
+      // Stop the "SPI Accelerometer" Sensor Controller task
+      scifStopTasksNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID);
+      // Wait for sensor controller ready callback
+      sc_ready = false;
+    }
 #endif
 }
 
@@ -461,7 +500,13 @@ void Lpstk_shutdownLightSensor(void)
     closeI2C();
 #else
     //TODO: feature
-
+    if (scifGetActiveTaskIds() & (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID))
+    {
+      // Stop the "SPI Accelerometer" Sensor Controller task
+      scifStopTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);
+      // Wait for sensor controller ready callback
+      sc_ready = false;
+    }
 #endif
 }
 
