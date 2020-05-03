@@ -196,6 +196,19 @@ extern uint32_t Util_buildUint32(uint8_t byte0, uint8_t byte1, uint8_t byte2,
                                  uint8_t byte3);
 
 /*!
+ * @brief      Build a float out of 4 uint8_t variables
+ *
+ * @param      byte0 - byte - 0
+ * @param      byte1 - byte - 1
+ * @param      byte2 - byte - 2
+ * @param      byte3 - byte - 3
+ *
+ * @return     combined float
+ */
+extern float Util_buildFloat(uint8_t byte0, uint8_t byte1, uint8_t byte2,
+                                 uint8_t byte3);
+
+/*!
  * @brief      Pulls 1 uint8_t out of a uint32_t
  *
  * @param      var - uint32_t variable
@@ -204,6 +217,7 @@ extern uint32_t Util_buildUint32(uint8_t byte0, uint8_t byte1, uint8_t byte2,
  * @return     uint8_t
  */
 extern uint8_t Util_breakUint32(uint32_t var, int byteNum);
+
 
 /*!
  * @brief      Build a uint16_t from a uint8_t array
@@ -243,6 +257,16 @@ extern uint8_t *Util_bufferUint16(uint8_t *pBuf, uint16_t val);
  * @return     pBuf - ptr to next available buffer location
  */
 extern uint8_t *Util_bufferUint32(uint8_t *pBuf, uint32_t val);
+
+/*!
+ * @brief      Break and buffer a float value - LSB first
+ *
+ * @param      pBuf - ptr to next available buffer location
+ * @param      val  - 32-bit value to break/buffer
+ *
+ * @return     pBuf - ptr to next available buffer location
+ */
+extern uint8_t *Util_bufferFloat(uint8_t *pBuf, float val);
 
 /*!
  * @brief       Utility function to clear an event

@@ -140,11 +140,16 @@ void Lpstk_init(void *evntHandle, Lpstk_scCb scTaskCb)
 {
     applicationSem = evntHandle;
     scCB = scTaskCb;
+    Lpstk_initSensorController(scTaskAlertCallback);
+#ifndef CLOSET
     Lpstk_initHumidityAndTempSensor(0, 0, 0, 0, NULL);
     Lpstk_initLightSensor(0, 0,NULL);
     Lpstk_initHallEffectSensor();
     Lpstk_openAccelerometerSensor();
-    Lpstk_initSensorController(scTaskAlertCallback);
+#else
+    Lpstk_openHumidityTempSensor();
+    Lpstk_openLightSensor();
+#endif
 }
 
 void Lpstk_initSensorReadTimer(Lpstk_SensorMask sensors, uint32_t clockPeriod)
@@ -265,9 +270,9 @@ void Lpstk_processEvents(void)
     }
     if(lpstkEvents & LPSTK_EV_SC_ALERT)
     {
-        processSensorRead((Lpstk_SensorMask)(LPSTK_HUMIDITY      |
-                                             LPSTK_TEMPERATURE   |
-                                             LPSTK_LIGHT), false);
+        processSensorRead((Lpstk_SensorMask)(LPSTK_HUMIDITY |
+                                            LPSTK_TEMPERATURE |
+                                            LPSTK_LIGHT), false);
         // Acknowledge the ALERT event
         scifAckAlertEvents();
 
@@ -369,6 +374,7 @@ static void scTaskAlertCallback(void)
 {
   // Clear the ALERT interrupt source
   scifClearAlertIntSource();
+
   // Trigger an event to read the accelerometer
   setEvent(LPSTK_EV_SC_ALERT);
 }

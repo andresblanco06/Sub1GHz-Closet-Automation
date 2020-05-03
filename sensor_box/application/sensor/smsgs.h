@@ -188,9 +188,9 @@ The <b>Sensor Ramp Data Message</b> is defined as:
 /*! Length of the tempSensor portion of the sensor data message */
 #define SMSGS_SENSOR_TEMP_LEN 4
 /*! Length of the lightSensor portion of the sensor data message */
-#define SMSGS_SENSOR_LIGHT_LEN 2
+#define SMSGS_SENSOR_LIGHT_LEN 4
 /*! Length of the humiditySensor portion of the sensor data message */
-#define SMSGS_SENSOR_HUMIDITY_LEN 4
+#define SMSGS_SENSOR_HUMIDITY_LEN 8
 /*! Length of the messageStatistics portion of the sensor data message */
 #define SMSGS_SENSOR_MSG_STATS_LEN 44
 /*! Length of the configSettings portion of the sensor data message */
@@ -281,6 +281,9 @@ typedef enum
     /*! Accelerometer Sensor */
     Smsgs_dataFields_accelSensor = 0x0040,
 #endif /* LPSTK */
+#ifdef CLOSET
+    Smsgs_dataFields_airQuality = 0x2000,
+#endif
     Smsgs_dataFields_bleSensor = 0x0080,
 } Smsgs_dataFields_t;
 
@@ -304,7 +307,6 @@ typedef enum
 /******************************************************************************
  Structures - Building blocks for the over-the-air sensor messages
  *****************************************************************************/
-
 /*!
  Configuration Request message: sent from controller to the sensor.
  */
@@ -419,8 +421,8 @@ typedef struct _Smsgs_tempsensorfield_t
  */
 typedef struct _Smsgs_lightsensorfield_t
 {
-    /*! Raw Sensor Data read out of the OPT2001 light sensor */
-    uint16_t rawData;
+    /*! Raw Sensor Data read out of the OPT3001 light sensor */
+    float rawData;
 } Smsgs_lightSensorField_t;
 
 /*!
@@ -429,9 +431,9 @@ typedef struct _Smsgs_lightsensorfield_t
 typedef struct _Smsgs_humiditysensorfield_t
 {
     /*! Raw Temp Sensor Data from the TI HCD1000 humidity sensor. */
-    uint16_t temp;
+    float temp;
     /*! Raw Humidity Sensor Data from the TI HCD1000 humidity sensor. */
-    uint16_t humidity;
+    float humidity;
 } Smsgs_humiditySensorField_t;
 
 /*!
@@ -459,6 +461,17 @@ typedef struct _Smsgs_accelsensorfield_t
     /*! Device tilted in the Y axis. */
     uint8_t yTiltDet;
 } Smsgs_accelSensorField_t;
+
+/*!
+ airQuality Sensor Field
+ */
+typedef struct _Smsgs_airQualityfield_t
+{
+    /*! co2 value. */
+    uint16_t co2;
+    /*! tvoc value. */
+    uint16_t tvoc;
+} Smsgs_airQualityfield_t;
 
 typedef struct _Smsgs_blesensorfield_t
 {
@@ -629,6 +642,7 @@ typedef struct _Smsgs_sensormsg_t
      */
     Smsgs_accelSensorField_t accelerometerSensor;
 #endif /* LPSTK */
+    Smsgs_airQualityfield_t airQuality;
     /*!
      BLE Sensor field - valid only if Smsgs_dataFields_bleSensorField_t
      is set in frameControl.

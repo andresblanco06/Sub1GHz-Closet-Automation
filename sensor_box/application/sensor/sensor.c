@@ -1530,9 +1530,9 @@ static void readSensors(void)
 #endif
 #ifdef LPSTK
 #ifdef CLOSET
-    humiditySensor.temp = (uint16_t)Lpstk_getTemperature();
-    humiditySensor.humidity = (uint16_t)Lpstk_getHumidity();
-    lightSensor.rawData = (uint16_t)Lpstk_getLux();
+    humiditySensor.temp = Lpstk_getTemperature();
+    humiditySensor.humidity = Lpstk_getHumidity();
+    lightSensor.rawData = Lpstk_getLux();
 #else
     hallEffectSensor.flux = Lpstk_getMagFlux();
     Lpstk_Accelerometer accel;
@@ -1624,12 +1624,12 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
         }
         if(pMsg->frameControl & Smsgs_dataFields_lightSensor)
         {
-            pBuf = Util_bufferUint16(pBuf, pMsg->lightSensor.rawData);
+            pBuf = Util_bufferFloat(pBuf, pMsg->lightSensor.rawData);
         }
         if(pMsg->frameControl & Smsgs_dataFields_humiditySensor)
         {
-            pBuf = Util_bufferUint16(pBuf, pMsg->humiditySensor.temp);
-            pBuf = Util_bufferUint16(pBuf, pMsg->humiditySensor.humidity);
+            pBuf = Util_bufferFloat(pBuf, pMsg->humiditySensor.temp);
+            pBuf = Util_bufferFloat(pBuf, pMsg->humiditySensor.humidity);
         }
         if(pMsg->frameControl & Smsgs_dataFields_msgStats)
         {

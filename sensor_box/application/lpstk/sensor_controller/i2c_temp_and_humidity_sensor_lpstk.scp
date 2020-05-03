@@ -640,16 +640,15 @@ if (state.i2cStatus == 0x0000) {
         U16 mant = result << 4;
         // The exponent is in range 0 to 11
         U16 value = mant >> (11 - exp);
-        output.value = value;
+        output.value = result;
 
-        // Notify the application with the result is below the low threshold or above the high threshold
-        if (value < cfg.lowThreshold) {
-            fwGenAlertInterrupt();
-        }
-        if (value > cfg.highThreshold) {
-            fwGenAlertInterrupt();
-        }
-
+//        // Notify the application with the result is below the low threshold or above the high threshold
+//        if (value < cfg.lowThreshold) {
+//            fwGenAlertInterrupt();
+//        }
+//        if (value > cfg.highThreshold) {
+//            fwGenAlertInterrupt();
+//        }
     } else {
         i2cStop();
     }
@@ -664,9 +663,9 @@ i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_ONE_SHOT);
 evhSetupTimer1Trigger(0, 120, 2);
 
 // Schedule the next execution
-fwScheduleTask(1);]]></sccode>
+fwScheduleTask(2000);]]></sccode>
         <sccode name="initialize" init_power_mode="0"><![CDATA[// Schedule the first execution
-fwScheduleTask(1);]]></sccode>
+fwScheduleTask(1000);]]></sccode>
         <sccode name="terminate" init_power_mode="0"><![CDATA[// Shut down the light sensor
 i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_RESET);
 
@@ -677,5 +676,218 @@ evhCancelTrigger(0);]]></sccode>
         <tt_struct></tt_struct>
         <rtl_struct></rtl_struct>
         <rtl_task_sel en="0" struct_log_list=""/>
+    </task>
+    <task name="DGP30 Gas Sensor">
+        <desc><![CDATA[]]></desc>
+        <tattr name="SGP30_I2C_ADDRESS" desc="SGP30_I2C_ADDRESS" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0058</tattr>
+        <tattr name="SGP30_IAQ_INIT" desc="init command" type="expr_hex" content="const" scope="task" min="0" max="65535">0x2003</tattr>
+        <tattr name="SGP30_IAQ_SET_ABSOLUTE_HUMIDITY" type="expr_hex" content="const" scope="task" min="0" max="65535">0x2061</tattr>
+        <tattr name="SGP30_MEASURE_IAQ" type="expr_hex" content="const" scope="task" min="0" max="65535">0x2008</tattr>
+        <tattr name="SGP30_STATE_HUMIDITY" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0001</tattr>
+        <tattr name="SGP30_STATE_INIT" type="expr_hex" content="const" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="SGP30_STATE_MEASURE" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0010</tattr>
+        <tattr name="SGP30_STATE_READ" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0100</tattr>
+        <tattr name="input.absoluteHumidity" desc="absolute humidity" type="expr_hex" content="struct" scope="task" min="0" max="65535">0xFF00</tattr>
+        <tattr name="output.co2" desc="value from the sensor" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.tvoc" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="state.sgp30state" type="expr_hex" content="struct" scope="task" min="0" max="65535">SGP30_STATE_INIT</tattr>
+        <resource_ref name="ADC" enabled="0"/>
+        <resource_ref name="AON Domain Functionality" enabled="0"/>
+        <resource_ref name="Accumulator-Based Math" enabled="0"/>
+        <resource_ref name="Analog Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Analog Open-Source Pins" enabled="0"/>
+        <resource_ref name="Analog Pins" enabled="0"/>
+        <resource_ref name="COMPA" enabled="0"/>
+        <resource_ref name="COMPA Event Trigger" enabled="0"/>
+        <resource_ref name="COMPB" enabled="0"/>
+        <resource_ref name="COMPB Event Trigger" enabled="0"/>
+        <resource_ref name="Delay Insertion" enabled="0"/>
+        <resource_ref name="Differential Output Pins" enabled="0"/>
+        <resource_ref name="Digital Input Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Source Pins" enabled="0"/>
+        <resource_ref name="Digital Output Pins" enabled="0"/>
+        <resource_ref name="Dynamic Power Control" enabled="0"/>
+        <resource_ref name="GPIO Event Trigger" enabled="0"/>
+        <resource_ref name="I2C Master" enabled="1">
+            <rattr name="SCL frequency">0</rattr>
+            <rattr name="SCL stretch timeout">10</rattr>
+            <io_usage>
+                <uattr name="SCL pin/0000">DIO4</uattr>
+                <uattr name="SDA pin/0000">DIO5</uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="ISRC" enabled="0"/>
+        <resource_ref name="LCD Controller" enabled="0">
+            <rattr name="Waveform state count">8</rattr>
+            <io_usage>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Pin count">20</uattr>
+                <uattr name="Pin/0000"></uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Math and Logic" enabled="0"/>
+        <resource_ref name="Multi-Buffered Output Data Exchange" enabled="0">
+            <rattr name="Buffer count">2</rattr>
+            <rattr name="Indicate overflow at buffer check">1</rattr>
+            <rattr name="Indicate overflow at buffer switch">0</rattr>
+            <rattr name="Prevent overflow at buffer switch">1</rattr>
+        </resource_ref>
+        <resource_ref name="Peripheral Sharing" enabled="0"/>
+        <resource_ref name="Pulse Counter" enabled="0"/>
+        <resource_ref name="RTC Multi-Event Capture" enabled="0"/>
+        <resource_ref name="RTC-Based Execution Scheduling" enabled="1"/>
+        <resource_ref name="Reference DAC" enabled="0"/>
+        <resource_ref name="Run-Time Logging" enabled="0"/>
+        <resource_ref name="SPI Chip Select" enabled="0"/>
+        <resource_ref name="SPI Data Transfer" enabled="0">
+            <rattr name="Bit rate">0</rattr>
+            <rattr name="MISO configuration when inactive">-1</rattr>
+            <rattr name="MOSI configuration on initialization">0</rattr>
+            <rattr name="MOSI configuration on uninitialization">0</rattr>
+            <rattr name="SCLK configuration on initialization">0</rattr>
+            <rattr name="SCLK configuration on uninitialization">0</rattr>
+            <io_usage>
+                <uattr name="MISO pin/0000"></uattr>
+                <uattr name="MOSI pin/0000"></uattr>
+                <uattr name="SCLK pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Signal Observation" enabled="0"/>
+        <resource_ref name="System CPU Alert" enabled="1"/>
+        <resource_ref name="System Event Trigger" enabled="0"/>
+        <resource_ref name="TDC" enabled="0"/>
+        <resource_ref name="Timer 0" enabled="0"/>
+        <resource_ref name="Timer 0 Event Trigger" enabled="0"/>
+        <resource_ref name="Timer 1" enabled="0"/>
+        <resource_ref name="Timer 1 Event Trigger" enabled="0"/>
+        <resource_ref name="Timer 2" enabled="0"/>
+        <resource_ref name="Timer 2 Event Trigger" enabled="0"/>
+        <resource_ref name="UART Emulator" enabled="0">
+            <rattr name="RX buffer size">64</rattr>
+            <rattr name="Required idle period before enabling RX">11</rattr>
+            <rattr name="TX buffer size">64</rattr>
+            <io_usage>
+                <uattr name="RX pin/0000"></uattr>
+                <uattr name="TX pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <sccode name="event0" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="event1" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="event2" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="event3" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="execute" init_power_mode="0"><![CDATA[U16 resultH = 0;
+U16 resultL = 0;
+U16 resulttvocH = 0;
+U16 resulttvocL = 0;
+U16 dummy = 0;
+// If a measurement was successfully started during the last execution ...
+if (state.i2cStatus == 0x0000) {
+
+    if(state.sgp30state == SGP30_STATE_HUMIDITY){
+        resultH = input.absoluteHumidity >> 8;
+        resultL = input.absoluteHumidity & 0x00FF;
+        U16 sum = resultH + resultL;
+        U16 crc = ~sum;
+        crc += 1;
+
+        i2cStart();
+        i2cTx(SGP30_I2C_ADDRESS);
+        i2cTx(SGP30_IAQ_SET_ABSOLUTE_HUMIDITY >> 8);
+        i2cTx(SGP30_IAQ_SET_ABSOLUTE_HUMIDITY & 0x00FF);
+        i2cTx(resultH);
+        i2cTx(resultL);
+        i2cTx(crc);
+        i2cStop();
+
+        state.sgp30state = SGP30_STATE_MEASURE;
+
+        fwScheduleTask(3);
+    }
+    if(state.sgp30state == SGP30_STATE_MEASURE){
+
+        i2cStart();
+        i2cTx(SGP30_I2C_ADDRESS);
+        i2cTx(SGP30_MEASURE_IAQ >> 8);
+        i2cTx(SGP30_MEASURE_IAQ & 0x00FF);
+        i2cStop();
+
+        state.sgp30state = SGP30_STATE_READ;
+
+        fwScheduleTask(12);
+    }
+    if(state.sgp30state == SGP30_STATE_READ){
+
+        i2cStart();
+        i2cTx(SGP30_I2C_ADDRESS);
+        i2cRxAck(resultH);
+        i2cRxAck(resultL);
+        i2cRxAck(dummy);
+        i2cRxAck(resulttvocH);
+        i2cRxAck(resulttvocL);
+        i2cRxAck(dummy);
+        i2cStop();
+
+        output.co2 = (resultH << 8) | resultL;
+        output.tvoc = (resulttvocH << 8) | resulttvocL;
+
+        state.sgp30state = SGP30_STATE_HUMIDITY;
+
+        fwScheduleTask(1000);
+    }
+}else{
+    state.sgp30state = SGP30_STATE_MEASURE;
+    i2cStop();
+    fwScheduleTask(1000);
+}]]></sccode>
+        <sccode name="initialize" init_power_mode="0"><![CDATA[// Configure and start the next measurement
+i2cStart();
+i2cTx(SGP30_I2C_ADDRESS);
+i2cTx(SGP30_IAQ_INIT >> 8);
+i2cTx(SGP30_IAQ_INIT & 0x00FF);
+i2cStop();
+
+state.sgp30state = SGP30_STATE_HUMIDITY;
+
+// Schedule the first execution
+fwScheduleTask(3);]]></sccode>
+        <sccode name="terminate" init_power_mode="0"><![CDATA[// Shut down the light sensor
+i2cStop();]]></sccode>
+        <event_trigger active_count="1">0,1,2,3</event_trigger>
+        <tt_iter></tt_iter>
+        <tt_struct></tt_struct>
+        <rtl_struct></rtl_struct>
+        <rtl_task_sel en="1" struct_log_list="output"/>
     </task>
 </project>

@@ -51,5 +51,6 @@ Mkfile.old
 dkms.conf
 /.metadata/
 
-/*_sensor_lpstk_tirtos/
+/collector_CC1352R1_LAUNCHXL_tirtos_ccs/
+/*_lpstk_tirtos/
 */sensor_controller/projects/

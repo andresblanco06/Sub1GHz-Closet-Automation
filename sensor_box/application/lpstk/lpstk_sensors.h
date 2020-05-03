@@ -96,11 +96,11 @@ typedef struct
 
 typedef struct
 {
-    float      humidity;
-    float   temperature;
-    float         lux;
+    float               humidity;
+    float               temperature;
+    float               lux;
     Lpstk_Accelerometer accelerometer;
-    float    halleffectMagFlux;
+    float               halleffectMagFlux;
 } Lpstk_Sensors;
 
 void Lpstk_initHumidityAndTempSensor(float hHiLim, float hLoLim,

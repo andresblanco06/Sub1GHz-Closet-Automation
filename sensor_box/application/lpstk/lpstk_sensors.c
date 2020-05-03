@@ -233,6 +233,8 @@ void Lpstk_initSensorController(SCIF_VFPTR scTaskAlertCallback)
     scifOsalRegisterCtrlReadyCallback(scCtrlReadyCallback);
     scifOsalRegisterTaskAlertCallback(scTaskAlertCallback);
     scifInit(&scifDriverSetup);
+    // Set the Sensor Controller task tick interval to 1 millisecond
+    scifStartRtcTicksNow(0x00010000/100);
 }
 
 uint8_t Lpstk_openHumidityTempSensor(void)
@@ -278,8 +280,9 @@ uint8_t Lpstk_openHumidityTempSensor(void)
         scifTaskData.i2cTempAndHumiditySensor.cfg.humChangeThr = 10;
         // Start the "SPI Accelerometer" Sensor Controller task
         scifStartTasksNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID);
+        openStatus = scifWaitOnNbl(1000000);
         // Wait for sensor controller ready callback
-        while (!sc_ready);
+//        while (!sc_ready);
     }
 
     return openStatus;
@@ -323,14 +326,16 @@ uint8_t Lpstk_openLightSensor(void)
     //TODO: open opt3001
     if (!(scifGetActiveTaskIds() & (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID)))
     {
-        // Set the Sensor Controller task tick interval to 1 second
-        scifStartRtcTicksNow(0x00010000);
+
         // Configure to trigger interrupt at first result, and start the Sensor Controller's I2C Light
         // Sensor task (not to be confused with OS tasks)
         int lowThreshold  = scifTaskData.i2cLightSensor.cfg.lowThreshold  = 0;
         int highThreshold = scifTaskData.i2cLightSensor.cfg.highThreshold = 65535;
+        // Start the "SPI Accelerometer" Sensor Controller task
+        scifStartTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);
+        openStatus = scifWaitOnNbl(1000000);
         // Wait for sensor controller ready callback
-        while (!sc_ready);
+//        while (!sc_ready);
     }
 
     return openStatus;
@@ -388,7 +393,7 @@ bool Lpstk_readTemperatureSensor(float *temperature)
 #else
     //TODO: feature
     uint16_t bvReport = scifTaskData.i2cTempAndHumiditySensor.output.bvReport;
-    successRead = ((bool) !(bvReport & SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_REPORT_I2C_ERROR));
+    successRead = ~((bool) (bvReport & SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_REPORT_I2C_ERROR));
     int16_t temp = scifTaskData.i2cTempAndHumiditySensor.output.pTempLog[scifTaskData.i2cTempAndHumiditySensor.state.logPos];
     *temperature = ((float) temp) / 64.0;
     return successRead;
@@ -405,7 +410,7 @@ bool Lpstk_readHumiditySensor(float *humidity)
     }
 #else
     uint16_t bvReport = scifTaskData.i2cTempAndHumiditySensor.output.bvReport;
-    successRead = ((bool) !(bvReport & SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_REPORT_I2C_ERROR));
+    successRead = ((bool) ~(bvReport & SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_REPORT_I2C_ERROR));
     uint16_t hum = scifTaskData.i2cTempAndHumiditySensor.output.pHumLog[scifTaskData.i2cTempAndHumiditySensor.state.logPos];
     *humidity = ((float) hum) / 64.0;
     return successRead;
@@ -423,8 +428,15 @@ bool Lpstk_readLightSensor(float *lux)
     }
 #else
     uint16_t bvReport = scifTaskData.i2cLightSensor.state.i2cStatus;
-    successRead = ((bool) !bvReport);
+    successRead = ~((bool) bvReport);
     uint16_t value = scifTaskData.i2cLightSensor.output.value;
+    // according to the datasheet this is the formula:
+    // lux = (0.01 * 2^(R[15:12]) * R[11:0])
+    float lsbSize = 0;
+    /* The register consist of data bits and exponent bits               */
+    /* Shift out data bits from reg and raise two to the resulting power */
+    lsbSize = (0.01 * (2 << (value >> 12))) / 2;
+    *lux =  lsbSize * (value & 0x0FFF);
     return successRead;
     //TODO: feature
 #endif
