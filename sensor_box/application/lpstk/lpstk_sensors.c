@@ -48,6 +48,7 @@
  Includes
  *****************************************************************************/
 #include <unistd.h>
+#include <math.h>
 
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/I2C.h>
@@ -132,6 +133,8 @@ static float luxLoLim;
 #endif
 
 static volatile bool sc_ready;
+
+static int16_t calculateAbsoluteHumidity(float temp, float hum);
 
 // SCIF driver callback: Task control interface ready (non-blocking task
 // control opstatic eration completed)
@@ -382,6 +385,17 @@ uint8_t Lpstk_openAccelerometerSensor(void)
 #endif
 }
 
+uint8_t Lpstk_openAirQualitySensor(void)
+{
+    uint8_t openStatus = LPSTK_NULL_HANDLE;
+    if (!(scifGetActiveTaskIds() & (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID)))
+    {
+        scifStartTasksNbl(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID);
+        openStatus = scifWaitOnNbl(1000000);
+    }
+    return openStatus;
+}
+
 bool Lpstk_readTemperatureSensor(float *temperature)
 {
     bool successRead = false;
@@ -470,6 +484,39 @@ void Lpstk_readAccelerometerSensor(Lpstk_Accelerometer *accel)
 #endif
 }
 
+void Lpstk_readAirQualitySensor(Lpstk_AirQuality *airQ)
+{
+    airQ->co2 = scifTaskData.sgp30GasSensor.output.co2;
+    airQ->tvoc = scifTaskData.sgp30GasSensor.output.tvoc;
+    //calcualte and pass humidity levels to SC
+    int16_t temp = scifTaskData.i2cTempAndHumiditySensor.output.pTempLog[scifTaskData.i2cTempAndHumiditySensor.state.logPos];
+    uint16_t hum = scifTaskData.i2cTempAndHumiditySensor.output.pHumLog[scifTaskData.i2cTempAndHumiditySensor.state.logPos];
+    //Calculate absolute Hum using the current temp and hum to calibrate the air quality sensor
+    float absHum = calculateAbsoluteHumidity(((float)temp/64), ((float)hum/64));
+    //The sensor uses 8.8 floating point format, I need to match it before passing on the data.
+    absHum = round(absHum*100.0);
+    float frac = fmodf(absHum, 100.0);
+    float ipart = (absHum - frac)/100.0;
+    scifTaskData.sgp30GasSensor.input.absoluteHumidity = ((char) ipart << 8) | ((char) ipart);
+}
+
+static int16_t calculateAbsoluteHumidity(float temp, float hum){
+//    Calculate absolute humidity using temperature in Celsius and Humidity in RH%
+//    The formula is as follows:
+//
+//    (T, RH) = 216.7 * [ RH            exp ( 17.62 * T)]
+//                      [---- * 6.112 *     (----------)]
+//                      [100%               (243.12 + T)]
+//                      [-------------------------------]
+//                      [            273.15+T           ]
+
+    float H = hum/100;
+    float exp = expf((17.62 * temp)/(243.12+temp));
+    float absHum = 216.7 * ((H*6.112*exp)/(273.15+temp));
+
+    return absHum;
+}
+
 void Lpstk_shutdownHumidityTempSensor(void)
 {
 #ifndef CLOSET
@@ -553,6 +600,18 @@ void Lpstk_shutdownAccelerometerSensor(void)
 
     //TODO: feature
 #endif
+}
+
+void Lpstk_shutdownAirQualitySensor(void)
+{
+    //TODO: feature
+    if (scifGetActiveTaskIds() & (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID))
+    {
+      // Stop the "SPI Accelerometer" Sensor Controller task
+      scifStopTasksNbl(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID);
+      // Wait for sensor controller ready callback
+      sc_ready = false;
+    }
 }
 
 static void scCtrlReadyCallback(void)

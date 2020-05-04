@@ -300,6 +300,11 @@ void Lpstk_getAccelerometer(Lpstk_Accelerometer *accel)
 {
     memcpy(accel, &lpstkSensors.accelerometer, sizeof(Lpstk_Accelerometer));
 }
+//get last accel
+void Lpstk_getAirQuality(Lpstk_AirQuality *airQ)
+{
+    memcpy(airQ, &lpstkSensors.airQuality, sizeof(Lpstk_AirQuality));
+}
 //get last hall
 float Lpstk_getMagFlux()
 {
@@ -328,6 +333,10 @@ void shutDownSensors(Lpstk_SensorMask sensors)
          * will be in use from the main application given that the sensor
          * controller has no way of knowing that the SPI is currently in use*/
         Lpstk_shutdownAccelerometerSensor();
+    }
+    if(sensors & LPSTK_AIR_QUALITY)
+    {
+       Lpstk_shutdownAirQualitySensor();
     }
     if(sensors & LPSTK_HALL_EFFECT)
     {
@@ -394,6 +403,10 @@ static void powerUpSensors(Lpstk_SensorMask sensors)
     {
         Lpstk_openAccelerometerSensor();
     }
+    if(sensors & LPSTK_AIR_QUALITY)
+    {
+        Lpstk_openAirQualitySensor();
+    }
     if(sensors & LPSTK_HALL_EFFECT)
     {
         Lpstk_openHallEffectSensor();
@@ -416,6 +429,10 @@ static void processSensorRead(Lpstk_SensorMask sensors, bool shutdown)
     if(sensors & LPSTK_LIGHT)
     {
         Lpstk_readLightSensor(&lpstkSensors.lux);
+    }
+    if(sensors & LPSTK_AIR_QUALITY)
+    {
+        Lpstk_readAirQualitySensor(&lpstkSensors.airQuality);
     }
     if(sensors & LPSTK_ACCELEROMETER)
     {

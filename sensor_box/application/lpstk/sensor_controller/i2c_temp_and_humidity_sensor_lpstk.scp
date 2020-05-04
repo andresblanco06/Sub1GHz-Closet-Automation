@@ -677,7 +677,7 @@ evhCancelTrigger(0);]]></sccode>
         <rtl_struct></rtl_struct>
         <rtl_task_sel en="0" struct_log_list=""/>
     </task>
-    <task name="DGP30 Gas Sensor">
+    <task name="SGP30 Gas Sensor">
         <desc><![CDATA[]]></desc>
         <tattr name="SGP30_I2C_ADDRESS" desc="SGP30_I2C_ADDRESS" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0058</tattr>
         <tattr name="SGP30_IAQ_INIT" desc="init command" type="expr_hex" content="const" scope="task" min="0" max="65535">0x2003</tattr>

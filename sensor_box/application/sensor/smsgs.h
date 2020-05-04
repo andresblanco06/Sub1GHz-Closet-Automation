@@ -642,7 +642,7 @@ typedef struct _Smsgs_sensormsg_t
      */
     Smsgs_accelSensorField_t accelerometerSensor;
 #endif /* LPSTK */
-    Smsgs_airQualityfield_t airQuality;
+    Smsgs_airQualityfield_t airQualitySensor;
     /*!
      BLE Sensor field - valid only if Smsgs_dataFields_bleSensorField_t
      is set in frameControl.

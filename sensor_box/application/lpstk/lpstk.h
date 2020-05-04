@@ -75,6 +75,7 @@ typedef enum
     LPSTK_LIGHT         = Event_Id_02,
     LPSTK_ACCELEROMETER = Event_Id_03,
     LPSTK_HALL_EFFECT   = Event_Id_04,
+    LPSTK_AIR_QUALITY   = Event_Id_05,
 } Lpstk_SensorMask;
 
 /******************************************************************************
@@ -96,6 +97,7 @@ float Lpstk_getHumidity(void);
 void Lpstk_getAccelerometer(Lpstk_Accelerometer *accel);
 float Lpstk_getMagFlux(void);
 float Lpstk_getLux(void);
+void Lpstk_getAirQuality(Lpstk_AirQuality *airQ);
 
 #ifdef __cplusplus
 }

@@ -222,6 +222,14 @@ STATIC Smsgs_lightSensorField_t lightSensor =
 STATIC Smsgs_humiditySensorField_t humiditySensor =
     { 0 };
 
+#ifdef CLOSET
+/*!
+ Air Quality Sensor field - valid only if Smsgs_dataFields_airQuality
+ is set in frameControl.
+ */
+STATIC Smsgs_airQualityfield_t airQualitySensor =
+    { 0 };
+#endif
 #ifdef LPSTK
 /*!
  Hall Effect Sensor field - valid only if Smsgs_dataFields_hallEffectSensor
@@ -484,9 +492,10 @@ void Sensor_init(void)
 #ifdef LPSTK
     configSettings.frameControl |= Smsgs_dataFields_humiditySensor   |
                                    Smsgs_dataFields_lightSensor      ;
-//                                Smsgs_dataFields_hallEffectSensor
-//                                Smsgs_dataFields_accelSensor
 #endif /* LPSTK */
+#ifdef CLOSET
+    configSettings.frameControl |= Smsgs_dataFields_airQuality;
+#endif /* CLOSET */
     configSettings.frameControl |= Smsgs_dataFields_msgStats;
     configSettings.frameControl |= Smsgs_dataFields_configSettings;
 #ifdef DMM_CENTRAL
@@ -1485,6 +1494,14 @@ static void processSensorMsgEvt(void)
         sensor.configSettings.reportingInterval = configSettings
                         .reportingInterval;
     }
+#ifdef CLOSET
+    if(sensor.frameControl & Smsgs_dataFields_lightSensor)
+    {
+        memcpy(&sensor.airQualitySensor, &airQualitySensor,
+               sizeof(Smsgs_airQualityfield_t));
+    }
+#endif
+
 
 #ifdef LPSTK
     if(sensor.frameControl & Smsgs_dataFields_hallEffectSensor)
@@ -1533,6 +1550,10 @@ static void readSensors(void)
     humiditySensor.temp = Lpstk_getTemperature();
     humiditySensor.humidity = Lpstk_getHumidity();
     lightSensor.rawData = Lpstk_getLux();
+    Lpstk_AirQuality airQuality;
+    Lpstk_getAirQuality(&airQuality);
+    airQualitySensor.co2 = airQuality.co2;
+    airQualitySensor.tvoc = airQuality.tvoc;
 #else
     hallEffectSensor.flux = Lpstk_getMagFlux();
     Lpstk_Accelerometer accel;
@@ -1582,6 +1603,12 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
     {
         len += SMSGS_SENSOR_CONFIG_SETTINGS_LEN;
     }
+#ifdef CLOSET
+    if(pMsg->frameControl & Smsgs_dataFields_airQuality)
+    {
+        len += sizeof(Smsgs_airQualityfield_t);
+    }
+#endif
 #ifdef LPSTK
     if(pMsg->frameControl & Smsgs_dataFields_hallEffectSensor)
     {
@@ -1672,6 +1699,14 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
                                      pMsg->configSettings.pollingInterval);
 
         }
+#ifdef CLOSET
+        if(pMsg->frameControl & Smsgs_dataFields_hallEffectSensor)
+        {
+            pBuf = Util_bufferUint16(pBuf,pMsg->airQualitySensor.co2);
+            pBuf = Util_bufferUint16(pBuf,pMsg->airQualitySensor.tvoc);
+
+        }
+#endif
 #ifdef LPSTK
         if(pMsg->frameControl & Smsgs_dataFields_hallEffectSensor)
         {
@@ -1931,6 +1966,12 @@ static uint16_t validateFrameControl(uint16_t frameControl)
     {
         newFrameControl |= Smsgs_dataFields_humiditySensor;
     }
+#ifdef CLOSET
+    if(frameControl & Smsgs_dataFields_airQuality)
+    {
+        newFrameControl |= Smsgs_dataFields_airQuality;
+    }
+#endif
 #ifdef LPSTK
     if(frameControl & Smsgs_dataFields_hallEffectSensor)
     {

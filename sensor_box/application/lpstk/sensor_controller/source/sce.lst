@@ -395,15 +395,15 @@
                pFwTaskInitializeFuncTable:
 00a9 ---- 00e8                         dw          #i2cTempAndHumiditySensor/initialize
 00aa ---- 01c5                         dw          #i2cLightSensor/initialize
-00ab ---- 0207                         dw          #dgp30GasSensor/initialize
+00ab ---- 0207                         dw          #sgp30GasSensor/initialize
                pFwTaskExecuteFuncTable:
 00ac ---- 0123                         dw          #i2cTempAndHumiditySensor/execute
 00ad ---- 01c9                         dw          #i2cLightSensor/execute
-00ae ---- 021e                         dw          #dgp30GasSensor/execute
+00ae ---- 021e                         dw          #sgp30GasSensor/execute
                pFwTaskTerminateFuncTable:
 00af ---- 01b5                         dw          #i2cTempAndHumiditySensor/terminate
 00b0 ---- 01f8                         dw          #i2cLightSensor/terminate
-00b1 ---- 02a6                         dw          #dgp30GasSensor/terminate
+00b1 ---- 02a6                         dw          #sgp30GasSensor/terminate
 
                ; Run-time logging log requests and masks, one bit for each struct, one word for each task
                pRtlTaskLogReqTable:
@@ -495,22 +495,22 @@
                i2cLightSensor/state/i2cStatus:
 00e2 ---- 0000                         dw          #0
                .segment end "Task: I2C Light Sensor"
-               .segment begin "Task: DGP30 Gas Sensor"
-               dgp30GasSensor/cfg:
-               dgp30GasSensor/input:
-               dgp30GasSensor/input/absoluteHumidity:
+               .segment begin "Task: SGP30 Gas Sensor"
+               sgp30GasSensor/cfg:
+               sgp30GasSensor/input:
+               sgp30GasSensor/input/absoluteHumidity:
 00e3 ---- ff00                         dw          #65280
-               dgp30GasSensor/output:
-               dgp30GasSensor/output/co2:
+               sgp30GasSensor/output:
+               sgp30GasSensor/output/co2:
 00e4 ---- 0000                         dw          #0
-               dgp30GasSensor/output/tvoc:
+               sgp30GasSensor/output/tvoc:
 00e5 ---- 0000                         dw          #0
-               dgp30GasSensor/state:
-               dgp30GasSensor/state/i2cStatus:
+               sgp30GasSensor/state:
+               sgp30GasSensor/state/i2cStatus:
 00e6 ---- 0000                         dw          #0
-               dgp30GasSensor/state/sgp30state:
+               sgp30GasSensor/state/sgp30state:
 00e7 ---- 0000                         dw          #0
-               .segment end "Task: DGP30 Gas Sensor"
+               .segment end "Task: SGP30 Gas Sensor"
 
 
                .segment begin "Task: I2C Temp and Humidity Sensor"
@@ -1032,48 +1032,48 @@
                i2cLightSensor/terminateDone:
 0206 ---- adb7                         rts
                .segment end "Task: I2C Light Sensor"
-               .segment begin "Task: DGP30 Gas Sensor"
-               dgp30GasSensor/initialize:
+               .segment begin "Task: SGP30 Gas Sensor"
+               sgp30GasSensor/initialize:
                ;? // Configure and start the next measurement
                ;? i2cStart();
 0207 ---- 6000                         ld          R6, #0x0000
 0208 ---- 16bf                         jsr         I2cStart
-0209 ---- 6ce6                         st          R6, [#dgp30GasSensor/state/i2cStatus]
+0209 ---- 6ce6                         st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;? i2cTx(SGP30_I2C_ADDRESS);
 020a ---- 7058                         ld          R7, #88
-020b ---- 68e6                         ld          R6, [#dgp30GasSensor/state/i2cStatus]
+020b ---- 68e6                         ld          R6, [#sgp30GasSensor/state/i2cStatus]
 020c ---- 16cf                         jsr         I2cTxByte
-020d ---- 6ce6                         st          R6, [#dgp30GasSensor/state/i2cStatus]
+020d ---- 6ce6                         st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;? i2cTx(SGP30_IAQ_INIT >> 8);
 020e ---- 7020                         ld          R7, #32
-020f ---- 68e6                         ld          R6, [#dgp30GasSensor/state/i2cStatus]
+020f ---- 68e6                         ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0210 ---- 16cf                         jsr         I2cTxByte
-0211 ---- 6ce6                         st          R6, [#dgp30GasSensor/state/i2cStatus]
+0211 ---- 6ce6                         st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;? i2cTx(SGP30_IAQ_INIT & 0x00FF);
 0212 ---- 7003                         ld          R7, #3
-0213 ---- 68e6                         ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0213 ---- 68e6                         ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0214 ---- 16cf                         jsr         I2cTxByte
-0215 ---- 6ce6                         st          R6, [#dgp30GasSensor/state/i2cStatus]
+0215 ---- 6ce6                         st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;? i2cStop();
-0216 ---- 68e6                         ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0216 ---- 68e6                         ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0217 ---- 16c4                         jsr         I2cStop
-0218 ---- 6ce6                         st          R6, [#dgp30GasSensor/state/i2cStatus]
+0218 ---- 6ce6                         st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?
                ;? state.sgp30state = SGP30_STATE_HUMIDITY;
 0219 ---- 0001                         ld          R0, #1
-021a ---- 0ce7                         st          R0, [#dgp30GasSensor/state/sgp30state]
+021a ---- 0ce7                         st          R0, [#sgp30GasSensor/state/sgp30state]
                ;?
                ;? // Schedule the first execution
                ;? fwScheduleTask(3);
 021b ---- 0003                         ld          R0, #3
 021c ---- 0ca8                         st          R0, [#(pFwTaskExecuteScheduleTable + 2)]
-               dgp30GasSensor/initializeDone:
+               sgp30GasSensor/initializeDone:
 021d ---- adb7                         rts
 
 
 
 
-               dgp30GasSensor/execute:
+               sgp30GasSensor/execute:
                ;? U16 resultH = 0;
                ;? U16 resultL = 0;
                ;? U16 resulttvocH = 0;
@@ -1081,19 +1081,19 @@
                ;? U16 dummy = 0;
                ;? // If a measurement was successfully started during the last execution ...
                ;? if (state.i2cStatus == 0x0000) {
-021e ---- 08e6                         ld          R0, [#dgp30GasSensor/state/i2cStatus]
+021e ---- 08e6                         ld          R0, [#sgp30GasSensor/state/i2cStatus]
 021f ---- 8a00                         cmp         R0, #0
 0220 ---- be7c                         bneq        /id0080
                ;?
                ;?     if(state.sgp30state == SGP30_STATE_HUMIDITY){
-0221 ---- 08e7                             ld          R0, [#dgp30GasSensor/state/sgp30state]
+0221 ---- 08e7                             ld          R0, [#sgp30GasSensor/state/sgp30state]
 0222 ---- 8a01                             cmp         R0, #1
 0223 ---- be2a                             bneq        /id0083
                ;?         resultH = input.absoluteHumidity >> 8;
-0224 ---- 08e3                                 ld          R0, [#dgp30GasSensor/input/absoluteHumidity]
+0224 ---- 08e3                                 ld          R0, [#sgp30GasSensor/input/absoluteHumidity]
 0225 ---- 8da8                                 lsr         R0, #8
                ;?         resultL = input.absoluteHumidity & 0x00FF;
-0226 ---- 18e3                                 ld          R1, [#dgp30GasSensor/input/absoluteHumidity]
+0226 ---- 18e3                                 ld          R1, [#sgp30GasSensor/input/absoluteHumidity]
 0227 ---- 90ff                                 and         R1, #255
                ;?         U16 sum = resultH + resultL;
 0228 ---- ad40                                 ld          R2, R0
@@ -1106,45 +1106,45 @@
                ;?         i2cStart();
 022c ---- 6000                                 ld          R6, #0x0000
 022d ---- 16bf                                 jsr         I2cStart
-022e ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+022e ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(SGP30_I2C_ADDRESS);
 022f ---- 7058                                 ld          R7, #88
-0230 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0230 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0231 ---- 16cf                                 jsr         I2cTxByte
-0232 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0232 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(SGP30_IAQ_SET_ABSOLUTE_HUMIDITY >> 8);
 0233 ---- 7020                                 ld          R7, #32
-0234 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0234 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0235 ---- 16cf                                 jsr         I2cTxByte
-0236 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0236 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(SGP30_IAQ_SET_ABSOLUTE_HUMIDITY & 0x00FF);
 0237 ---- 7061                                 ld          R7, #97
-0238 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0238 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0239 ---- 16cf                                 jsr         I2cTxByte
-023a ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+023a ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(resultH);
 023b ---- fd40                                 ld          R7, R0
-023c ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+023c ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 023d ---- 16cf                                 jsr         I2cTxByte
-023e ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+023e ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(resultL);
 023f ---- fd41                                 ld          R7, R1
-0240 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0240 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0241 ---- 16cf                                 jsr         I2cTxByte
-0242 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0242 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(crc);
 0243 ---- fd42                                 ld          R7, R2
-0244 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0244 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0245 ---- 16cf                                 jsr         I2cTxByte
-0246 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0246 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cStop();
-0247 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0247 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0248 ---- 16c4                                 jsr         I2cStop
-0249 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0249 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?
                ;?         state.sgp30state = SGP30_STATE_MEASURE;
 024a ---- 0010                                 ld          R0, #16
-024b ---- 0ce7                                 st          R0, [#dgp30GasSensor/state/sgp30state]
+024b ---- 0ce7                                 st          R0, [#sgp30GasSensor/state/sgp30state]
                ;?
                ;?         fwScheduleTask(3);
 024c ---- 0003                                 ld          R0, #3
@@ -1152,37 +1152,37 @@
                ;?     }
                /id0083:
                ;?     if(state.sgp30state == SGP30_STATE_MEASURE){
-024e ---- 08e7                             ld          R0, [#dgp30GasSensor/state/sgp30state]
+024e ---- 08e7                             ld          R0, [#sgp30GasSensor/state/sgp30state]
 024f ---- 8a10                             cmp         R0, #16
 0250 ---- be16                             bneq        /id0121
                ;?
                ;?         i2cStart();
 0251 ---- 6000                                 ld          R6, #0x0000
 0252 ---- 16bf                                 jsr         I2cStart
-0253 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0253 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(SGP30_I2C_ADDRESS);
 0254 ---- 7058                                 ld          R7, #88
-0255 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0255 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0256 ---- 16cf                                 jsr         I2cTxByte
-0257 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0257 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(SGP30_MEASURE_IAQ >> 8);
 0258 ---- 7020                                 ld          R7, #32
-0259 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0259 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 025a ---- 16cf                                 jsr         I2cTxByte
-025b ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+025b ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(SGP30_MEASURE_IAQ & 0x00FF);
 025c ---- 7008                                 ld          R7, #8
-025d ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+025d ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 025e ---- 16cf                                 jsr         I2cTxByte
-025f ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+025f ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cStop();
-0260 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0260 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0261 ---- 16c4                                 jsr         I2cStop
-0262 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0262 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?
                ;?         state.sgp30state = SGP30_STATE_READ;
 0263 ---- 0100                                 ld          R0, #256
-0264 ---- 0ce7                                 st          R0, [#dgp30GasSensor/state/sgp30state]
+0264 ---- 0ce7                                 st          R0, [#sgp30GasSensor/state/sgp30state]
                ;?
                ;?         fwScheduleTask(12);
 0265 ---- 000c                                 ld          R0, #12
@@ -1190,70 +1190,70 @@
                ;?     }
                /id0121:
                ;?     if(state.sgp30state == SGP30_STATE_READ){
-0267 ---- 08e7                             ld          R0, [#dgp30GasSensor/state/sgp30state]
+0267 ---- 08e7                             ld          R0, [#sgp30GasSensor/state/sgp30state]
 0268 8601 8a00                             cmp         R0, #256
 026a ---- be31                             bneq        /id0141
                ;?
                ;?         i2cStart();
 026b ---- 6000                                 ld          R6, #0x0000
 026c ---- 16bf                                 jsr         I2cStart
-026d ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+026d ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cTx(SGP30_I2C_ADDRESS);
 026e ---- 7058                                 ld          R7, #88
-026f ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+026f ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0270 ---- 16cf                                 jsr         I2cTxByte
-0271 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0271 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cRxAck(resultH);
 0272 ---- 7000                                 ld          R7, #0x0000
-0273 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0273 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0274 ---- 16ff                                 jsr         I2cRxByte
-0275 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0275 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
 0276 ---- 8d47                                 ld          R0, R7
                ;?         i2cRxAck(resultL);
 0277 ---- 7000                                 ld          R7, #0x0000
-0278 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0278 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0279 ---- 16ff                                 jsr         I2cRxByte
-027a ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+027a ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
 027b ---- 9d47                                 ld          R1, R7
                ;?         i2cRxAck(dummy);
 027c ---- 7000                                 ld          R7, #0x0000
-027d ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+027d ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 027e ---- 16ff                                 jsr         I2cRxByte
-027f ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+027f ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cRxAck(resulttvocH);
 0280 ---- 7000                                 ld          R7, #0x0000
-0281 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0281 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0282 ---- 16ff                                 jsr         I2cRxByte
-0283 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0283 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
 0284 ---- ad47                                 ld          R2, R7
                ;?         i2cRxAck(resulttvocL);
 0285 ---- 7000                                 ld          R7, #0x0000
-0286 ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+0286 ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 0287 ---- 16ff                                 jsr         I2cRxByte
-0288 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0288 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
 0289 ---- bd47                                 ld          R3, R7
                ;?         i2cRxAck(dummy);
 028a ---- 7000                                 ld          R7, #0x0000
-028b ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+028b ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 028c ---- 16ff                                 jsr         I2cRxByte
-028d ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+028d ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?         i2cStop();
-028e ---- 68e6                                 ld          R6, [#dgp30GasSensor/state/i2cStatus]
+028e ---- 68e6                                 ld          R6, [#sgp30GasSensor/state/i2cStatus]
 028f ---- 16c4                                 jsr         I2cStop
-0290 ---- 6ce6                                 st          R6, [#dgp30GasSensor/state/i2cStatus]
+0290 ---- 6ce6                                 st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?
                ;?         output.co2 = (resultH << 8) | resultL;
 0291 ---- 8da0                                 lsl         R0, #8
 0292 ---- 8d09                                 or          R0, R1
-0293 ---- 0ce4                                 st          R0, [#dgp30GasSensor/output/co2]
+0293 ---- 0ce4                                 st          R0, [#sgp30GasSensor/output/co2]
                ;?         output.tvoc = (resulttvocH << 8) | resulttvocL;
 0294 ---- ada0                                 lsl         R2, #8
 0295 ---- ad0b                                 or          R2, R3
-0296 ---- 2ce5                                 st          R2, [#dgp30GasSensor/output/tvoc]
+0296 ---- 2ce5                                 st          R2, [#sgp30GasSensor/output/tvoc]
                ;?
                ;?         state.sgp30state = SGP30_STATE_HUMIDITY;
 0297 ---- 0001                                 ld          R0, #1
-0298 ---- 0ce7                                 st          R0, [#dgp30GasSensor/state/sgp30state]
+0298 ---- 0ce7                                 st          R0, [#sgp30GasSensor/state/sgp30state]
                ;?
                ;?         fwScheduleTask(1000);
 0299 8603 03e8                                 ld          R0, #1000
@@ -1265,31 +1265,31 @@
                /id0080:
                ;?     state.sgp30state = SGP30_STATE_MEASURE;
 029d ---- 0010                             ld          R0, #16
-029e ---- 0ce7                             st          R0, [#dgp30GasSensor/state/sgp30state]
+029e ---- 0ce7                             st          R0, [#sgp30GasSensor/state/sgp30state]
                ;?     i2cStop();
-029f ---- 68e6                             ld          R6, [#dgp30GasSensor/state/i2cStatus]
+029f ---- 68e6                             ld          R6, [#sgp30GasSensor/state/i2cStatus]
 02a0 ---- 16c4                             jsr         I2cStop
-02a1 ---- 6ce6                             st          R6, [#dgp30GasSensor/state/i2cStatus]
+02a1 ---- 6ce6                             st          R6, [#sgp30GasSensor/state/i2cStatus]
                ;?     fwScheduleTask(1000);
 02a2 8603 03e8                             ld          R0, #1000
 02a4 ---- 0ca8                             st          R0, [#(pFwTaskExecuteScheduleTable + 2)]
                ;? }
                /id0082:
-               dgp30GasSensor/executeDone:
+               sgp30GasSensor/executeDone:
 02a5 ---- adb7                         rts
 
 
 
 
-               dgp30GasSensor/terminate:
+               sgp30GasSensor/terminate:
                ;? // Shut down the light sensor
                ;? i2cStop();
-02a6 ---- 68e6                         ld          R6, [#dgp30GasSensor/state/i2cStatus]
+02a6 ---- 68e6                         ld          R6, [#sgp30GasSensor/state/i2cStatus]
 02a7 ---- 16c4                         jsr         I2cStop
-02a8 ---- 6ce6                         st          R6, [#dgp30GasSensor/state/i2cStatus]
-               dgp30GasSensor/terminateDone:
+02a8 ---- 6ce6                         st          R6, [#sgp30GasSensor/state/i2cStatus]
+               sgp30GasSensor/terminateDone:
 02a9 ---- adb7                         rts
-               .segment end "Task: DGP30 Gas Sensor"
+               .segment end "Task: SGP30 Gas Sensor"
 
 
                .segment begin "Procedure Library"
@@ -1742,4 +1742,4 @@
                .segment end "Procedure Library"
 
 
-; Generated by DESKTOP-MRBABVC at 2020-05-02 21:49:55.100
+; Generated by DESKTOP-MRBABVC at 2020-05-04 16:07:21.592

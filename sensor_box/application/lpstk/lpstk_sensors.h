@@ -96,11 +96,19 @@ typedef struct
 
 typedef struct
 {
+    uint16_t  co2;          ///Latest co2 sample
+    uint16_t  tvoc;         ///Latest tvoc sample
+
+} Lpstk_AirQuality;
+
+typedef struct
+{
     float               humidity;
     float               temperature;
     float               lux;
     Lpstk_Accelerometer accelerometer;
     float               halleffectMagFlux;
+    Lpstk_AirQuality airQuality;
 } Lpstk_Sensors;
 
 void Lpstk_initHumidityAndTempSensor(float hHiLim, float hLoLim,
@@ -114,17 +122,20 @@ uint8_t Lpstk_openHumidityTempSensor(void);
 uint8_t Lpstk_openLightSensor(void);
 uint8_t Lpstk_openHallEffectSensor(void);
 uint8_t Lpstk_openAccelerometerSensor(void);
+uint8_t Lpstk_openAirQualitySensor(void);
 
 bool Lpstk_readTemperatureSensor(float *temperature);
 bool Lpstk_readHumiditySensor(float *humidity);
 bool Lpstk_readLightSensor(float *lux);
 bool Lpstk_readHallEffectSensor(float *flux);
 void Lpstk_readAccelerometerSensor(Lpstk_Accelerometer *accel);
+void Lpstk_readAirQualitySensor(Lpstk_AirQuality *airQ);
 
 void Lpstk_shutdownHumidityTempSensor(void);
 void Lpstk_shutdownLightSensor(void);
 void Lpstk_shutdownHallEffectSensor(void);
 void Lpstk_shutdownAccelerometerSensor(void);
+void Lpstk_shutdownAirQualitySensor(void);
 
 
 #ifdef __cplusplus
