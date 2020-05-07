@@ -817,7 +817,7 @@ if (state.i2cStatus == 0x0000) {
 
     if(state.sgp30state == SGP30_STATE_HUMIDITY){
         resultH = input.absoluteHumidity >> 8;
-        resultL = input.absoluteHumidity & 0x00FF;
+        resultL = input.absoluteHumidity & 0xFF00;
         U16 sum = resultH + resultL;
         U16 crc = ~sum;
         crc += 1;
@@ -825,7 +825,7 @@ if (state.i2cStatus == 0x0000) {
         i2cStart();
         i2cTx(SGP30_I2C_ADDRESS);
         i2cTx(SGP30_IAQ_SET_ABSOLUTE_HUMIDITY >> 8);
-        i2cTx(SGP30_IAQ_SET_ABSOLUTE_HUMIDITY & 0x00FF);
+        i2cTx(SGP30_IAQ_SET_ABSOLUTE_HUMIDITY & 0xFF00);
         i2cTx(resultH);
         i2cTx(resultL);
         i2cTx(crc);
@@ -840,7 +840,7 @@ if (state.i2cStatus == 0x0000) {
         i2cStart();
         i2cTx(SGP30_I2C_ADDRESS);
         i2cTx(SGP30_MEASURE_IAQ >> 8);
-        i2cTx(SGP30_MEASURE_IAQ & 0x00FF);
+        i2cTx(SGP30_MEASURE_IAQ & 0xFF00);
         i2cStop();
 
         state.sgp30state = SGP30_STATE_READ;
@@ -859,8 +859,8 @@ if (state.i2cStatus == 0x0000) {
         i2cRxAck(dummy);
         i2cStop();
 
-        output.co2 = (resultH << 8) | resultL;
-        output.tvoc = (resulttvocH << 8) | resulttvocL;
+        output.co2 = (resultH << 8) | (resultL & 0xFF00);
+        output.tvoc = (resulttvocH << 8) | (resulttvocL & 0xFF00);
 
         state.sgp30state = SGP30_STATE_HUMIDITY;
 

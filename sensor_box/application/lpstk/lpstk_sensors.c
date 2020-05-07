@@ -497,7 +497,7 @@ void Lpstk_readAirQualitySensor(Lpstk_AirQuality *airQ)
     absHum = round(absHum*100.0);
     float frac = fmodf(absHum, 100.0);
     float ipart = (absHum - frac)/100.0;
-    scifTaskData.sgp30GasSensor.input.absoluteHumidity = ((char) ipart << 8) | ((char) ipart);
+    scifTaskData.sgp30GasSensor.input.absoluteHumidity = ((uint16_t) ipart << 8) | (((uint16_t) frac) & 0xFF00);
 }
 
 static int16_t calculateAbsoluteHumidity(float temp, float hum){

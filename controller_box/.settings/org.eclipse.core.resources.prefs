@@ -1,4 +1,10 @@
 eclipse.preferences.version=1
+encoding//Release/application/controller/actuator/subdir_rules.mk=UTF-8
+encoding//Release/application/controller/actuator/subdir_vars.mk=UTF-8
+encoding//Release/application/controller/subdir_rules.mk=UTF-8
+encoding//Release/application/controller/subdir_vars.mk=UTF-8
+encoding//Release/application/controller/time/subdir_rules.mk=UTF-8
+encoding//Release/application/controller/time/subdir_vars.mk=UTF-8
 encoding//Release/application/cui/subdir_rules.mk=UTF-8
 encoding//Release/application/cui/subdir_vars.mk=UTF-8
 encoding//Release/application/sensor/flash_interface/rtos/subdir_rules.mk=UTF-8
