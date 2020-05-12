@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectSpec>
+    <project
+        title="i2c_light_sensor_lpstk_tirtos"
+        name="i2c_light_sensor_lpstk_tirtos"
+        device="CC1352R1F3"
+        toolChain="TI"
+        linkerCommandFile=""
+        compilerBuildOptions=" --silicon_version=7M4 --float_support=FPv4SPD16 --little_endian --code_state=16 --abi=eabi -me -g --gcc --c99 --gen_func_subsections=on --display_error_number --diag_warning=255 --diag_wrap=off --symdebug:dwarf -IC:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/devices/cc13x2_cc26x2 -IC:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/kernel/tirtos -IC:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source -IC:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/boards/CC1352R1_LAUNCHXL -DDEVICE_FAMILY=cc13x2_cc26x2 -DDeviceFamily_CC13X2"
+        linkerBuildOptions=" -lC:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/devices/cc13x2_cc26x2/driverlib/bin/ccs/driverlib.lib -lC:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/drivers/lib/drivers_cc13x2.aem4f -lC:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/kernel/tirtos/packages/ti/dpl/lib/dpl_cc13x2.aem4f -x"
+        description="I2C Light Sensor (TI-RTOS)"
+        connection="TIXDS110_Connection.xml"
+        launchWizard="false">
+
+        <property name="type" value="rtsc"/>
+        <property name="products" value="com.ti.SIMPLELINK_CC13X2_26X2_SDK:4.10.0.78"/>
+        <property name="xdcToolsVersion" value="3.61.00.16"/>
+        <property name="target" value="ti.targets.arm.elf.M4F"/>
+        <property name="platform" value="ti.platforms.simplelink:CC1352R1F3"/>
+        <property name="buildProfile" value="release"/>
+        <property name="isHybrid" value="true"/>
+        <property name="configuroOptions" value="--compileOptions &quot;${COMPILER_FLAGS} &quot; "/>
+
+        <file path="C:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/boards/CC1352R1_LAUNCHXL/CC1352R1_LAUNCHXL_TIRTOS.cmd" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory="./sdk_files__do_not_edit">
+        </file>
+        <file path="C:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/devices/cc13x2_cc26x2/startup_files/ccfg.c" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory="./sdk_files__do_not_edit" createVirtualFolders="true">
+        </file>
+        <file path="C:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/boards/CC1352R1_LAUNCHXL/CC1352R1_LAUNCHXL.c" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory="./sdk_files__do_not_edit" createVirtualFolders="true">
+        </file>
+        <file path="C:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/boards/CC1352R1_LAUNCHXL/Board.h" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory="./sdk_files__do_not_edit" createVirtualFolders="true">
+        </file>
+        <file path="C:/ti/simplelink_cc13x2_26x2_sdk_4_10_00_78/source/ti/boards/CC1352R1_LAUNCHXL/CC1352R1_LAUNCHXL_fxns.c" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory="./sdk_files__do_not_edit" createVirtualFolders="true">
+        </file>
+
+        <file path="./rom.cfg" openOnCreation="false" excludeFromBuild="false" action="copy" targetDirectory=".">
+        </file>
+        <file path="./../../source/scif.c" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory=".">
+        </file>
+        <file path="./../../source/scif.h" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory=".">
+        </file>
+        <file path="./../../source/scif_framework.c" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory=".">
+        </file>
+        <file path="./../../source/scif_framework.h" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory=".">
+        </file>
+        <file path="./../../source/scif_osal_tirtos.h" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory=".">
+        </file>
+        <file path="./../../source/main_tirtos.c" openOnCreation="false" excludeFromBuild="false" action="link" targetDirectory=".">
+        </file>
+
+    </project>
+</projectSpec>
+
