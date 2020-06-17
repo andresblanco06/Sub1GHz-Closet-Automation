@@ -134,7 +134,7 @@ static float luxLoLim;
 
 static volatile bool sc_ready;
 
-static int16_t calculateAbsoluteHumidity(float temp, float hum);
+static float calculateAbsoluteHumidity(float temp, float hum);
 
 // SCIF driver callback: Task control interface ready (non-blocking task
 // control opstatic eration completed)
@@ -237,7 +237,8 @@ void Lpstk_initSensorController(SCIF_VFPTR scTaskAlertCallback)
     scifOsalRegisterTaskAlertCallback(scTaskAlertCallback);
     scifInit(&scifDriverSetup);
     // Set the Sensor Controller task tick interval to 1 millisecond
-    scifStartRtcTicksNow(0x00010000/100);
+    scifStartRtcTicksNow(0x00010000/1000);
+    scifWaitOnNbl(100000);
 }
 
 uint8_t Lpstk_openHumidityTempSensor(void)
@@ -283,7 +284,7 @@ uint8_t Lpstk_openHumidityTempSensor(void)
         scifTaskData.i2cTempAndHumiditySensor.cfg.humChangeThr = 10;
         // Start the "SPI Accelerometer" Sensor Controller task
         scifStartTasksNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID);
-        openStatus = scifWaitOnNbl(1000000);
+        openStatus = scifWaitOnNbl(100000);
         // Wait for sensor controller ready callback
 //        while (!sc_ready);
     }
@@ -329,14 +330,14 @@ uint8_t Lpstk_openLightSensor(void)
     //TODO: open opt3001
     if (!(scifGetActiveTaskIds() & (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID)))
     {
-
         // Configure to trigger interrupt at first result, and start the Sensor Controller's I2C Light
         // Sensor task (not to be confused with OS tasks)
         int lowThreshold  = scifTaskData.i2cLightSensor.cfg.lowThreshold  = 0;
         int highThreshold = scifTaskData.i2cLightSensor.cfg.highThreshold = 65535;
         // Start the "SPI Accelerometer" Sensor Controller task
         scifStartTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);
-        openStatus = scifWaitOnNbl(1000000);
+        openStatus = scifWaitOnNbl(100000);
+        scifSwTriggerExecutionCodeNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);
         // Wait for sensor controller ready callback
 //        while (!sc_ready);
     }
@@ -391,7 +392,7 @@ uint8_t Lpstk_openAirQualitySensor(void)
     if (!(scifGetActiveTaskIds() & (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID)))
     {
         scifStartTasksNbl(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID);
-        openStatus = scifWaitOnNbl(1000000);
+        openStatus = scifWaitOnNbl(100000);
     }
     return openStatus;
 }
@@ -497,10 +498,32 @@ void Lpstk_readAirQualitySensor(Lpstk_AirQuality *airQ)
     absHum = round(absHum*100.0);
     float frac = fmodf(absHum, 100.0);
     float ipart = (absHum - frac)/100.0;
-    scifTaskData.sgp30GasSensor.input.absoluteHumidity = ((uint16_t) ipart << 8) | (((uint16_t) frac) & 0xFF00);
+    scifTaskData.sgp30GasSensor.input.absoluteHumidity = ((uint16_t) ipart << 8) | (((uint16_t) frac) & 0x00FF);
+    // calculates 8-Bit checksum with given polynomial
+    uint8_t crc = 0x00FF;
+
+    crc ^= (uint8_t) ((uint16_t) ipart & 0x00FF);
+
+    for (uint8_t b = 0; b < 8; b++) {
+      if (crc & 0x0080)
+        crc = (crc << 1) ^ 0x0031;
+      else
+        crc <<= 1;
+    }
+
+    crc ^= (uint8_t) ((uint16_t) frac & 0x00FF);
+
+    for (uint8_t b = 0; b < 8; b++) {
+     if (crc & 0x0080)
+       crc = (crc << 1) ^ 0x0031;
+     else
+       crc <<= 1;
+    }
+
+    scifTaskData.sgp30GasSensor.input.crc = (uint16_t) (crc & 0x00FF);
 }
 
-static int16_t calculateAbsoluteHumidity(float temp, float hum){
+static float calculateAbsoluteHumidity(float temp, float hum){
 //    Calculate absolute humidity using temperature in Celsius and Humidity in RH%
 //    The formula is as follows:
 //

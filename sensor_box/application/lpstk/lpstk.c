@@ -149,6 +149,7 @@ void Lpstk_init(void *evntHandle, Lpstk_scCb scTaskCb)
 #else
     Lpstk_openHumidityTempSensor();
     Lpstk_openLightSensor();
+    Lpstk_openAirQualitySensor();
 #endif
 }
 
@@ -272,7 +273,8 @@ void Lpstk_processEvents(void)
     {
         processSensorRead((Lpstk_SensorMask)(LPSTK_HUMIDITY |
                                             LPSTK_TEMPERATURE |
-                                            LPSTK_LIGHT), false);
+                                            LPSTK_LIGHT |
+                                            LPSTK_AIR_QUALITY), false);
         // Acknowledge the ALERT event
         scifAckAlertEvents();
 

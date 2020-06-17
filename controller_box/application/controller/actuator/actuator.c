@@ -189,6 +189,20 @@ static Actuator_Dimmable_t isDimmable(Actuator_t *actuator){
 
 static void clockCB(UArg a0){
 
+    Actuator_t *actuator =  a0;
+    if(isDimmable(actuator)){
+        /* Stop the Reading timer */
+        if(Clock_isActive(actuator->clkHandle))
+        {
+            Clock_stop(actuator->clkHandle);
+        }
+
+        toggleState(actuator);
+
+        Clock_setTimeout(actuator->clkHandle, HERTZ_120_TIME);
+    }
+        Clock_start(actuator->clkHandle);
+
 }
 
 static void initClock(Actuator_t *actuator, Clock_Handle *clkHandle, Clock_Struct *clkStruct){

@@ -1495,7 +1495,7 @@ static void processSensorMsgEvt(void)
                         .reportingInterval;
     }
 #ifdef CLOSET
-    if(sensor.frameControl & Smsgs_dataFields_lightSensor)
+    if(sensor.frameControl & Smsgs_dataFields_airQuality)
     {
         memcpy(&sensor.airQualitySensor, &airQualitySensor,
                sizeof(Smsgs_airQualityfield_t));
@@ -1700,10 +1700,10 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
 
         }
 #ifdef CLOSET
-        if(pMsg->frameControl & Smsgs_dataFields_hallEffectSensor)
+        if(pMsg->frameControl & Smsgs_dataFields_airQuality)
         {
-            pBuf = Util_bufferUint16(pBuf,pMsg->airQualitySensor.co2);
-            pBuf = Util_bufferUint16(pBuf,pMsg->airQualitySensor.tvoc);
+            pBuf = Util_bufferUint16(pBuf, pMsg->airQualitySensor.co2);
+            pBuf = Util_bufferUint16(pBuf, pMsg->airQualitySensor.tvoc);
 
         }
 #endif

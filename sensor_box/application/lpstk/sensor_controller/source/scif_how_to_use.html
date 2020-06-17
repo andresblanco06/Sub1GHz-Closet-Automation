@@ -263,16 +263,16 @@ Do <b>one</b> of the following:
 <ul>
     <li>To start all tasks in the Sensor Controller project in one operation:</li>
 <pre>// Start all Sensor Controller tasks
-scifStartTasksNbl((1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID) | (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) | (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID));</pre>
+scifStartTasksNbl((1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID) | (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID) | (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID));</pre>
     <li>To start only the "I2C Temp and Humidity Sensor" task:</li>
 <pre>// Start the "I2C Temp and Humidity Sensor" Sensor Controller task
 scifStartTasksNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID);</pre>
-    <li>To start only the "I2C Light Sensor" task:</li>
-<pre>// Start the "I2C Light Sensor" Sensor Controller task
-scifStartTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);</pre>
     <li>To start only the "SGP30 Gas Sensor" task:</li>
 <pre>// Start the "SGP30 Gas Sensor" Sensor Controller task
 scifStartTasksNbl(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID);</pre>
+    <li>To start only the "I2C Light Sensor" task:</li>
+<pre>// Start the "I2C Light Sensor" Sensor Controller task
+scifStartTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);</pre>
 </ul>
 </p>
 
@@ -317,29 +317,13 @@ The <tt>state</tt> data structure is normally for internal use by the Sensor Con
 scifTaskData.i2cTempAndHumiditySensor.state.logPos = ...;
 </pre>
 </p>
-<div class="h5">I2C Light Sensor</div>
-<p>
-The application will typically write to the <tt>cfg</tt> data structure before the task is started:
-<pre>
-scifTaskData.i2cLightSensor.cfg.highThreshold = ...;
-scifTaskData.i2cLightSensor.cfg.lowThreshold = ...;
-</pre>
-</p>
-
-
-<p>
-The application will typically read from the <tt>output</tt> data structure while the task is running:
-<pre>
-... = scifTaskData.i2cLightSensor.output.value;
-</pre>
-</p>
-
 <div class="h5">SGP30 Gas Sensor</div>
 
 <p>
 The application will typically write to the <tt>input</tt> data structure while the task is running:
 <pre>
 scifTaskData.sgp30GasSensor.input.absoluteHumidity = ...;
+scifTaskData.sgp30GasSensor.input.crc = ...;
 </pre>
 </p>
 
@@ -357,6 +341,31 @@ The <tt>state</tt> data structure is normally for internal use by the Sensor Con
 ... = scifTaskData.sgp30GasSensor.state.sgp30state;
 
 scifTaskData.sgp30GasSensor.state.sgp30state = ...;
+</pre>
+</p>
+<div class="h5">I2C Light Sensor</div>
+<p>
+The application will typically write to the <tt>cfg</tt> data structure before the task is started:
+<pre>
+scifTaskData.i2cLightSensor.cfg.highThreshold = ...;
+scifTaskData.i2cLightSensor.cfg.lowThreshold = ...;
+</pre>
+</p>
+
+
+<p>
+The application will typically read from the <tt>output</tt> data structure while the task is running:
+<pre>
+... = scifTaskData.i2cLightSensor.output.value;
+</pre>
+</p>
+
+<p>
+The <tt>state</tt> data structure is normally for internal use by the Sensor Controller, but can also be used for data exchange during operation or for observation:
+<pre>
+... = scifTaskData.i2cLightSensor.state.state;
+
+scifTaskData.i2cLightSensor.state.state = ...;
 </pre>
 </p>
 </p>
@@ -380,13 +389,13 @@ if (bvAlertEvents & (1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID)) {
     ... Access Sensor Controller task data structures here ...
 }
 
-// If the "I2C Light Sensor" task generated interrupt ...
-if (bvAlertEvents & (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID)) {
+// If the "SGP30 Gas Sensor" task generated interrupt ...
+if (bvAlertEvents & (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID)) {
     ... Access Sensor Controller task data structures here ...
 }
 
-// If the "SGP30 Gas Sensor" task generated interrupt ...
-if (bvAlertEvents & (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID)) {
+// If the "I2C Light Sensor" task generated interrupt ...
+if (bvAlertEvents & (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID)) {
     ... Access Sensor Controller task data structures here ...
 }
 
@@ -446,16 +455,6 @@ if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
 } else if (scifStartTasksNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID) != SCIF_SUCCESS) {
     ... Handle usage error ...
 }</pre>
-    <li>To start or restart the "I2C Light Sensor" task:</li>
-<pre>// Reset all data structures except configuration
-scifResetTaskStructs(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID, (1 << SCIF_STRUCT_INPUT) | (1 << SCIF_STRUCT_OUTPUT));
-
-// (Re)start the "I2C Light Sensor" Sensor Controller task
-if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
-    ... Handle timeout or usage error ...
-} else if (scifStartTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) != SCIF_SUCCESS) {
-    ... Handle usage error ...
-}</pre>
     <li>To start or restart the "SGP30 Gas Sensor" task:</li>
 <pre>// Reset all data structures except configuration
 scifResetTaskStructs(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID, (1 << SCIF_STRUCT_INPUT) | (1 << SCIF_STRUCT_OUTPUT));
@@ -464,6 +463,16 @@ scifResetTaskStructs(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID, (1 << SCIF_STRUCT_INPUT
 if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
     ... Handle timeout or usage error ...
 } else if (scifStartTasksNbl(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID) != SCIF_SUCCESS) {
+    ... Handle usage error ...
+}</pre>
+    <li>To start or restart the "I2C Light Sensor" task:</li>
+<pre>// Reset all data structures except configuration
+scifResetTaskStructs(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID, (1 << SCIF_STRUCT_INPUT) | (1 << SCIF_STRUCT_OUTPUT));
+
+// (Re)start the "I2C Light Sensor" Sensor Controller task
+if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
+    ... Handle timeout or usage error ...
+} else if (scifStartTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) != SCIF_SUCCESS) {
     ... Handle usage error ...
 }</pre>
 </ul>
@@ -482,18 +491,18 @@ if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
 } else if (scifStopTasksNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID) != SCIF_SUCCESS) {
     ... Handle usage error ...
 }</pre>
-    <li>To stop the "I2C Light Sensor" task:</li>
-<pre>// Stop the "I2C Light Sensor" Sensor Controller task
-if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
-    ... Handle timeout or usage error ...
-} else if (scifStopTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) != SCIF_SUCCESS) {
-    ... Handle usage error ...
-}</pre>
     <li>To stop the "SGP30 Gas Sensor" task:</li>
 <pre>// Stop the "SGP30 Gas Sensor" Sensor Controller task
 if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
     ... Handle timeout or usage error ...
 } else if (scifStopTasksNbl(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID) != SCIF_SUCCESS) {
+    ... Handle usage error ...
+}</pre>
+    <li>To stop the "I2C Light Sensor" task:</li>
+<pre>// Stop the "I2C Light Sensor" Sensor Controller task
+if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
+    ... Handle timeout or usage error ...
+} else if (scifStopTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) != SCIF_SUCCESS) {
     ... Handle usage error ...
 }</pre>
 </ul>
@@ -512,18 +521,18 @@ if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
 } else if (scifExecuteTasksOnceNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID) != SCIF_SUCCESS) {
     ... Handle usage error ...
 }</pre>
-    <li>To run the "I2C Light Sensor" task:</li>
-<pre>// Run the "I2C Light Sensor" Sensor Controller task
-if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
-    ... Handle timeout or usage error ...
-} else if (scifExecuteTasksOnceNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) != SCIF_SUCCESS) {
-    ... Handle usage error ...
-}</pre>
     <li>To run the "SGP30 Gas Sensor" task:</li>
 <pre>// Run the "SGP30 Gas Sensor" Sensor Controller task
 if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
     ... Handle timeout or usage error ...
 } else if (scifExecuteTasksOnceNbl(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID) != SCIF_SUCCESS) {
+    ... Handle usage error ...
+}</pre>
+    <li>To run the "I2C Light Sensor" task:</li>
+<pre>// Run the "I2C Light Sensor" Sensor Controller task
+if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
+    ... Handle timeout or usage error ...
+} else if (scifExecuteTasksOnceNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) != SCIF_SUCCESS) {
     ... Handle usage error ...
 }</pre>
 </ul>
@@ -542,18 +551,18 @@ if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
 } else if (scifSwTriggerExecutionCodeNbl(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID) != SCIF_SUCCESS) {
     ... Handle usage error ...
 }</pre>
-    <li>To run the "I2C Light Sensor" task's Execution Code:</li>
-<pre>// Run the "I2C Light Sensor" Execution Code
-if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
-    ... Handle timeout or usage error ...
-} else if (scifSwTriggerExecutionCodeNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) != SCIF_SUCCESS) {
-    ... Handle usage error ...
-}</pre>
     <li>To run the "SGP30 Gas Sensor" task's Execution Code:</li>
 <pre>// Run the "SGP30 Gas Sensor" Execution Code
 if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
     ... Handle timeout or usage error ...
 } else if (scifSwTriggerExecutionCodeNbl(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID) != SCIF_SUCCESS) {
+    ... Handle usage error ...
+}</pre>
+    <li>To run the "I2C Light Sensor" task's Execution Code:</li>
+<pre>// Run the "I2C Light Sensor" Execution Code
+if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
+    ... Handle timeout or usage error ...
+} else if (scifSwTriggerExecutionCodeNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) != SCIF_SUCCESS) {
     ... Handle usage error ...
 }</pre>
 </ul>
@@ -606,10 +615,10 @@ To transfer I/O pins from the application back to Sensor Controller tasks:
     <ul>
         <li>For the I2C Temp and Humidity Sensor task, call:</li>
 <pre>scifReinitTaskIo(1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID);</pre>
-        <li>For the I2C Light Sensor task, call:</li>
-<pre>scifReinitTaskIo(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);</pre>
         <li>For the SGP30 Gas Sensor task, call:</li>
 <pre>scifReinitTaskIo(1 << SCIF_SGP30_GAS_SENSOR_TASK_ID);</pre>
+        <li>For the I2C Light Sensor task, call:</li>
+<pre>scifReinitTaskIo(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);</pre>
     </ul>
     <li>You can now restart the Sensor Controller task(s)</li>
 </ul>
@@ -632,8 +641,8 @@ The SCIF Driver provides these definitions for use in the application:
     <li>Task IDs</li>
     <ul>
         <li><tt>SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID</tt></li>
-        <li><tt>SCIF_I2C_LIGHT_SENSOR_TASK_ID</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_TASK_ID</tt></li>
+        <li><tt>SCIF_I2C_LIGHT_SENSOR_TASK_ID</tt></li>
     </ul>
     <li>User-specified constants</li>
     <ul>
@@ -660,12 +669,11 @@ The SCIF Driver provides these definitions for use in the application:
         <li><tt>SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_HDC_REG_TEMP_H</tt></li>
         <li><tt>SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_HDC_REG_TEMP_L</tt></li>
         <li><tt>SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_LOG_SIZE</tt></li>
-        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_CFG_ONE_SHOT</tt></li>
-        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_CFG_RESET</tt></li>
-        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_I2C_ADDR</tt></li>
-        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_REG_CFG</tt></li>
-        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_REG_RESULT</tt></li>
+        <li><tt>SCIF_SGP30_GAS_SENSOR_BYTE_IN_BITS</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_I2C_ADDRESS</tt></li>
+        <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_I2C_ADDRESS_R</tt></li>
+        <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_I2C_ADDRESS_W</tt></li>
+        <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_IAQ_CMD</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_IAQ_INIT</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_IAQ_SET_ABSOLUTE_HUMIDITY</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_MEASURE_IAQ</tt></li>
@@ -673,16 +681,21 @@ The SCIF Driver provides these definitions for use in the application:
         <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_STATE_INIT</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_STATE_MEASURE</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_SGP30_STATE_READ</tt></li>
+        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_CFG_ONE_SHOT</tt></li>
+        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_CFG_RESET</tt></li>
+        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_I2C_ADDR</tt></li>
+        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_REG_CFG</tt></li>
+        <li><tt>SCIF_I2C_LIGHT_SENSOR_ALS_REG_RESULT</tt></li>
     </ul>
     <li>I/O mapping</li>
     <ul>
         <li><tt>SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_DIO_I_HDC_INT</tt></li>
         <li><tt>SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_DIO_I2C_SCL</tt></li>
         <li><tt>SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_DIO_I2C_SDA</tt></li>
-        <li><tt>SCIF_I2C_LIGHT_SENSOR_DIO_I2C_SCL</tt></li>
-        <li><tt>SCIF_I2C_LIGHT_SENSOR_DIO_I2C_SDA</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_DIO_I2C_SCL</tt></li>
         <li><tt>SCIF_SGP30_GAS_SENSOR_DIO_I2C_SDA</tt></li>
+        <li><tt>SCIF_I2C_LIGHT_SENSOR_DIO_I2C_SCL</tt></li>
+        <li><tt>SCIF_I2C_LIGHT_SENSOR_DIO_I2C_SDA</tt></li>
     </ul>
 </ul>
 </p>
@@ -697,7 +710,7 @@ To switch driver setup, first stop using and uninitialize this SCIF driver:
 // Stop all Sensor Controller tasks
 if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
     ... Handle error...
-} else if (scifStopTasksNbl((1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID) | (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID) | (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID)) != SCIF_SUCCESS) {
+} else if (scifStopTasksNbl((1 << SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID) | (1 << SCIF_SGP30_GAS_SENSOR_TASK_ID) | (1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID)) != SCIF_SUCCESS) {
     ... Handle error...
 } else if (scifWaitOnNbl(20000) != SCIF_SUCCESS) {
     ... Handle error...
@@ -766,4 +779,4 @@ To create or update the HTML documentation, run <tt>scif_run_doxygen.bat</tt>. T
 </html>
 
 
-<!-- Generated by DESKTOP-MRBABVC at 2020-05-04 17:06:20.310 -->
+<!-- Generated by DESKTOP-MRBABVC at 2020-06-15 23:05:55.289 -->

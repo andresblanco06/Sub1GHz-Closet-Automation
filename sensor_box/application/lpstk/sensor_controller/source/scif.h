@@ -10,7 +10,7 @@
   * - <b>Tool version</b>:     2.6.0.132
   * - <b>Tool patches</b>:     1, 2 and 3
   * - <b>Target chip</b>:      CC1352R1F3, package QFN48 7x7 RGZ, revision E (2.1)
-  * - <b>Created</b>:          2020-05-04 17:06:20.310
+  * - <b>Created</b>:          2020-06-15 23:05:55.289
   * - <b>Computer</b>:         DESKTOP-MRBABVC
   * - <b>User</b>:             andre
   *
@@ -84,10 +84,10 @@
   *     - <b>I: HDC2080 sensor interrupt</b>: DIO25
   *     - <b>I2C SCL</b>: DIO4
   *     - <b>I2C SDA</b>: DIO5
-  * - I2C Light Sensor:
+  * - SGP30 Gas Sensor:
   *     - <b>I2C SCL</b>: DIO4
   *     - <b>I2C SDA</b>: DIO5
-  * - SGP30 Gas Sensor:
+  * - I2C Light Sensor:
   *     - <b>I2C SCL</b>: DIO4
   *     - <b>I2C SDA</b>: DIO5
   *
@@ -121,6 +121,10 @@
   * - Connect I2C SCL to GND to cause SCL stretch timeout.
   * 
   * 
+  * \subsection section_task_desc_sgp30_gas_sensor SGP30 Gas Sensor
+  * No description entered
+  * 
+  * 
   * \subsection section_task_desc_i2c_light_sensor I2C Light Sensor
   * Samples the OPT3001 light sensor on the LaunchPad SensorTag Kit (LPSTK). This light sensor integrates
   * over longer periods of time to minimize noise from 50 and 60 Hz AC and pulse width modulated light
@@ -140,10 +144,6 @@
   * the JTAG and UART interfaces.
   * - The OPT3001 implements a timeout for I2C accesses, and will NACK I2C TX operations if a task
   * debugging session halts execution in the middle of an I2C transaction.
-  * 
-  * 
-  * \subsection section_task_desc_sgp30_gas_sensor SGP30 Gas Sensor
-  * No description entered
   *
   */
 
@@ -187,14 +187,14 @@
 
 /// I2C Temp and Humidity Sensor: Task ID
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_TASK_ID 0
-/// I2C Light Sensor: Task ID
-#define SCIF_I2C_LIGHT_SENSOR_TASK_ID 1
 /// SGP30 Gas Sensor: Task ID
-#define SCIF_SGP30_GAS_SENSOR_TASK_ID 2
+#define SCIF_SGP30_GAS_SENSOR_TASK_ID 1
+/// I2C Light Sensor: Task ID
+#define SCIF_I2C_LIGHT_SENSOR_TASK_ID 2
 
 
 /// I2C Temp and Humidity Sensor: HDC_REG_CFG_RES_INT_AMM: Perform measurements autonomously at 1 Hz interval
-#define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_HDC_CFG_AMM_1_HZ 80
+#define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_HDC_CFG_AMM_1_HZ 64
 /// I2C Temp and Humidity Sensor: HDC_REG_CFG_RES_INT_AMM: Interrupt pin is active low
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_HDC_CFG_INT_ACTIVE_LOW 0
 /// I2C Temp and Humidity Sensor: HDC_REG_CFG_RES_INT_AMM: Interrupt is enabled
@@ -221,7 +221,7 @@
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_REPORT_LOG_FULL 4
 /// I2C Temp and Humidity Sensor: output.bvReport indicates temperature change
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_BV_REPORT_TEMP_CHANGE 1
-/// I2C Temp and Humidity Sensor: HDC2080 I2C address
+/// I2C Temp and Humidity Sensor: HDC2080 I2C address //82
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_HDC_I2C_ADDR 130
 /// I2C Temp and Humidity Sensor: HDC2080 register: Measurement configuration
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_HDC_REG_CFG_MEAS 15
@@ -238,35 +238,29 @@
 /// I2C Temp and Humidity Sensor: HDC2080 register: Temperature value, LSB
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_HDC_REG_TEMP_L 0
 /// I2C Temp and Humidity Sensor: Number of samples to log before reporting to the application
-#define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_LOG_SIZE 10
+#define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_LOG_SIZE 1
 /// I2C Temp and Humidity Sensor I/O mapping: HDC2080 sensor interrupt
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_DIO_I_HDC_INT 25
 /// I2C Temp and Humidity Sensor I/O mapping: I2C SCL
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_DIO_I2C_SCL 4
 /// I2C Temp and Humidity Sensor I/O mapping: I2C SDA
 #define SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_DIO_I2C_SDA 5
-/// I2C Light Sensor: OPT3001 configuration triggering 100 ms single conversion
-#define SCIF_I2C_LIGHT_SENSOR_ALS_CFG_ONE_SHOT 49680
-/// I2C Light Sensor: OPT3001 configuration at reset (shutdown)
-#define SCIF_I2C_LIGHT_SENSOR_ALS_CFG_RESET 51216
-/// I2C Light Sensor: OPT3001 I2C address
-#define SCIF_I2C_LIGHT_SENSOR_ALS_I2C_ADDR 136
-/// I2C Light Sensor: OPT3001 configuration register
-#define SCIF_I2C_LIGHT_SENSOR_ALS_REG_CFG 1
-/// I2C Light Sensor: OPT3001 result register
-#define SCIF_I2C_LIGHT_SENSOR_ALS_REG_RESULT 0
-/// I2C Light Sensor I/O mapping: I2C SCL
-#define SCIF_I2C_LIGHT_SENSOR_DIO_I2C_SCL 4
-/// I2C Light Sensor I/O mapping: I2C SDA
-#define SCIF_I2C_LIGHT_SENSOR_DIO_I2C_SDA 5
-/// SGP30 Gas Sensor: SGP30_I2C_ADDRESS
+/// SGP30 Gas Sensor: 
+#define SCIF_SGP30_GAS_SENSOR_BYTE_IN_BITS 8
+/// SGP30 Gas Sensor: SGP30_I2C_ADDRESS //B0
 #define SCIF_SGP30_GAS_SENSOR_SGP30_I2C_ADDRESS 88
+/// SGP30 Gas Sensor: 
+#define SCIF_SGP30_GAS_SENSOR_SGP30_I2C_ADDRESS_R 176
+/// SGP30 Gas Sensor: 
+#define SCIF_SGP30_GAS_SENSOR_SGP30_I2C_ADDRESS_W 177
 /// SGP30 Gas Sensor: init command
-#define SCIF_SGP30_GAS_SENSOR_SGP30_IAQ_INIT 8195
+#define SCIF_SGP30_GAS_SENSOR_SGP30_IAQ_CMD 32
 /// SGP30 Gas Sensor: 
-#define SCIF_SGP30_GAS_SENSOR_SGP30_IAQ_SET_ABSOLUTE_HUMIDITY 8289
+#define SCIF_SGP30_GAS_SENSOR_SGP30_IAQ_INIT 3
 /// SGP30 Gas Sensor: 
-#define SCIF_SGP30_GAS_SENSOR_SGP30_MEASURE_IAQ 8200
+#define SCIF_SGP30_GAS_SENSOR_SGP30_IAQ_SET_ABSOLUTE_HUMIDITY 97
+/// SGP30 Gas Sensor: 
+#define SCIF_SGP30_GAS_SENSOR_SGP30_MEASURE_IAQ 8
 /// SGP30 Gas Sensor: 
 #define SCIF_SGP30_GAS_SENSOR_SGP30_STATE_HUMIDITY 1
 /// SGP30 Gas Sensor: 
@@ -279,6 +273,20 @@
 #define SCIF_SGP30_GAS_SENSOR_DIO_I2C_SCL 4
 /// SGP30 Gas Sensor I/O mapping: I2C SDA
 #define SCIF_SGP30_GAS_SENSOR_DIO_I2C_SDA 5
+/// I2C Light Sensor: OPT3001 configuration triggering 100 ms single conversion
+#define SCIF_I2C_LIGHT_SENSOR_ALS_CFG_ONE_SHOT 49680
+/// I2C Light Sensor: OPT3001 configuration at reset (shutdown)
+#define SCIF_I2C_LIGHT_SENSOR_ALS_CFG_RESET 51216
+/// I2C Light Sensor: OPT3001 I2C address //88
+#define SCIF_I2C_LIGHT_SENSOR_ALS_I2C_ADDR 136
+/// I2C Light Sensor: OPT3001 configuration register
+#define SCIF_I2C_LIGHT_SENSOR_ALS_REG_CFG 1
+/// I2C Light Sensor: OPT3001 result register
+#define SCIF_I2C_LIGHT_SENSOR_ALS_REG_RESULT 0
+/// I2C Light Sensor I/O mapping: I2C SCL
+#define SCIF_I2C_LIGHT_SENSOR_DIO_I2C_SCL 4
+/// I2C Light Sensor I/O mapping: I2C SDA
+#define SCIF_I2C_LIGHT_SENSOR_DIO_I2C_SDA 5
 
 
 // All shared data structures in AUX RAM need to be packed
@@ -294,11 +302,11 @@ typedef struct {
 
 /// I2C Temp and Humidity Sensor: Task output data structure
 typedef struct {
-    uint16_t bvReport;     ///< Reported events, one bit for each BV_REPORT_XYZ flag
-    uint16_t hum;          ///< Relative humidity [1/64 %]
-    uint16_t pHumLog[10];  ///< Humidity log buffer
-    uint16_t pTempLog[10]; ///< Temperature log buffer
-    int16_t  temp;         ///< Temperature [1/64 degC]
+    uint16_t bvReport;    ///< Reported events, one bit for each BV_REPORT_XYZ flag
+    uint16_t hum;         ///< Relative humidity [1/64 %]
+    uint16_t pHumLog[1];  ///< Humidity log buffer
+    uint16_t pTempLog[1]; ///< Temperature log buffer
+    int16_t  temp;        ///< Temperature [1/64 degC]
 } SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_OUTPUT_T;
 
 
@@ -307,6 +315,27 @@ typedef struct {
     uint16_t i2cStatus; ///< I2C master status
     uint16_t logPos;    ///< Next temperature log buffer position
 } SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_STATE_T;
+
+
+/// SGP30 Gas Sensor: Task input data structure
+typedef struct {
+    uint16_t absoluteHumidity; ///< absolute humidity
+    uint16_t crc;              ///< 
+} SCIF_SGP30_GAS_SENSOR_INPUT_T;
+
+
+/// SGP30 Gas Sensor: Task output data structure
+typedef struct {
+    uint16_t co2;  ///< value from the sensor
+    uint16_t tvoc; ///< 
+} SCIF_SGP30_GAS_SENSOR_OUTPUT_T;
+
+
+/// SGP30 Gas Sensor: Task state structure
+typedef struct {
+    uint16_t i2cStatus;  ///< I2C master status
+    uint16_t sgp30state; ///< 
+} SCIF_SGP30_GAS_SENSOR_STATE_T;
 
 
 /// I2C Light Sensor: Task configuration structure
@@ -325,27 +354,8 @@ typedef struct {
 /// I2C Light Sensor: Task state structure
 typedef struct {
     uint16_t i2cStatus; ///< I2C master status
+    uint16_t state;     ///< 
 } SCIF_I2C_LIGHT_SENSOR_STATE_T;
-
-
-/// SGP30 Gas Sensor: Task input data structure
-typedef struct {
-    uint16_t absoluteHumidity; ///< absolute humidity
-} SCIF_SGP30_GAS_SENSOR_INPUT_T;
-
-
-/// SGP30 Gas Sensor: Task output data structure
-typedef struct {
-    uint16_t co2;  ///< value from the sensor
-    uint16_t tvoc; ///< 
-} SCIF_SGP30_GAS_SENSOR_OUTPUT_T;
-
-
-/// SGP30 Gas Sensor: Task state structure
-typedef struct {
-    uint16_t i2cStatus;  ///< I2C master status
-    uint16_t sgp30state; ///< 
-} SCIF_SGP30_GAS_SENSOR_STATE_T;
 
 
 /// Sensor Controller task data (configuration, input buffer(s), output buffer(s) and internal state)
@@ -356,15 +366,15 @@ typedef struct {
         SCIF_I2C_TEMP_AND_HUMIDITY_SENSOR_STATE_T state;
     } i2cTempAndHumiditySensor;
     struct {
-        SCIF_I2C_LIGHT_SENSOR_CFG_T cfg;
-        SCIF_I2C_LIGHT_SENSOR_OUTPUT_T output;
-        SCIF_I2C_LIGHT_SENSOR_STATE_T state;
-    } i2cLightSensor;
-    struct {
         SCIF_SGP30_GAS_SENSOR_INPUT_T input;
         SCIF_SGP30_GAS_SENSOR_OUTPUT_T output;
         SCIF_SGP30_GAS_SENSOR_STATE_T state;
     } sgp30GasSensor;
+    struct {
+        SCIF_I2C_LIGHT_SENSOR_CFG_T cfg;
+        SCIF_I2C_LIGHT_SENSOR_OUTPUT_T output;
+        SCIF_I2C_LIGHT_SENSOR_STATE_T state;
+    } i2cLightSensor;
 } SCIF_TASK_DATA_T;
 
 /// Sensor Controller task generic control (located in AUX RAM)
@@ -393,4 +403,4 @@ void scifStopRtcTicks(void);
 //@}
 
 
-// Generated by DESKTOP-MRBABVC at 2020-05-04 17:06:20.310
+// Generated by DESKTOP-MRBABVC at 2020-06-15 23:05:55.289

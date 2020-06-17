@@ -1,16 +1,16 @@
-TI 15.4-Stack Sensor OAD Off-Chip Example
+TI 15.4-Stack Sensor OAD On-Chip Example
 ===================================
 
 Example Summary
 ---------------
 
-The Sensor OAD Off-Chip example application demonstrates how to implement a sensor network device using TI 15.4-Stack with the Off-Chip OAD configuration. TI 15.4-Stack based star network consists of two types of logical devices: the PAN-Coordinator and the network devices (e.g. the Collector and Sensor applications respectively).
+The Sensor OAD On-Chip example application demonstrates how to implement a sensor network device using TI 15.4-Stack with the On-Chip OAD configuration. TI 15.4-Stack based star network consists of two types of logical devices: the PAN-Coordinator and the network devices (e.g. the Collector and Sensor applications respectively).
 
 The PAN-Coordinator is the device that starts the network and allows other devices to join the network. The network devices join the network through and always communicate with the PAN-Coordinator. The Linux Collector application is required to perform an OAD to sensor devices on the 15.4 network. Linux example applications for the external host (AM335x + MAC Coprocessor) are located in the [**TI 15.4-Stack Gateway SDK**](http://www.ti.com/tool/ti-15.4-stack-gateway-linux-sdk).
 
-In the Off-Chip OAD configuration, the application image running from the internal flash receives and stores the OAD update image onto the external flash. Subsequently when the OAD transfer is complete, the image is copied over the application image internal flash and ran.
+The difference between Off-Chip and On-Chip OAD is that in case of Off-Chip OAD, the application image running from the internal flash receives and stores the OAD update image onto the external flash. Subsequently when the OAD transfer is complete, the image is copied over the application image internal flash and ran.
 
-The external flash also contains a factory backup image to revert to in case of corruption to the user application. The factory image is not required to be a 15.4 image and can be of any networking stack. More information of using a BLE factory image to perform an OAD of a 15.4 image is described the section "Reverting to Factory Image"
+In case of On-Chip OAD, there is another "always present/needed" persistent image along with the application image on the internal flash. When OAD process is started, the device boots into the persistent application context. It is the persistent application which receives the image update and overwrites the existing On-Chip application image. After OAD completes, if all checks including CRC and sign verification passes, the device boots into the new updated image - else, it boots back into the persistent application and requires a new OAD to be done.
 
 > The project names for CC1352 and CC2652 platforms are referred to as CC13x2 or CC26x2. Replace x with either **1** or **5** depending on the specific wireless MCU being used.
 
@@ -43,7 +43,7 @@ Otherwise, you can find `Board.html` in the directory
 Example Usage
 -------------
 
-The out of box example for the sensor_oad_offchip project uses the Linux Collector to update the FW on a sensor device. The following steps walk through the process of performing an OAD:
+The out of box example for the sensor_oad_onchip project uses the Linux Collector to update the FW on a sensor device. The following steps walk through the process of performing an OAD:
 
 Please note that prebuilt images are only provided for the 1352R1 device. If you are using a different device, please refer to section "Generating the Required Binary Images" in this document on how to build the images from the projects.
 
@@ -51,9 +51,10 @@ The Linux collector requires the coprocessor device to operate. To setup the cop
 * Load `<SDK_DIR>/examples/rtos/CC1352R1_LAUNCHXL/ti154stack/hexfiles/coprocessor_cc1352lp_tirtos_ccs.hex` onto the device using Uniflash
 
 For the sensor device:
-1. Add the Off-Chip BIM image `<SDK_DIR>/examples/rtos/CC1352R1_LAUNCHXL/easylink/hexfiles/offChipOad/cc13x2r1lp_bim_offchip.hex` to the image list
-2. Add the user application `<SDK_DIR>/examples/rtos/CC1352R1_LAUNCHXL/ti154stack/hexfiles/sensor_oad_offchip_secure_cc1352lp_tirtos_ccs.bin` to the image list
-3. Load both images onto the device using Uniflash
+1. Add the On-Chip BIM image `<SDK_DIR>/examples/rtos/CC1352R1_LAUNCHXL/easylink/hexfiles/onChipOad/cc13x2r1lp_bim_onchip.hex` to the image list
+2. Add the user application `<SDK_DIR>/examples/rtos/CC1352R1_LAUNCHXL/ti154stack/hexfiles/sensor_oad_onchip_secure_cc1352lp_tirtos_ccs.bin` to the image list
+3. Add the persistent application `<SDK_DIR>/examples/rtos/CC1352R1_LAUNCHXL/ti154stack/hexfiles/sensor_oad_onchip_persistent_secure_cc1352lp_tirtos_ccs.hex` to the image list
+4. Load all three images onto the device using Uniflash
 
 Connect the coprocessor to a Linux machine and run the Linux Collector application. If the sensor has previously connected to the Linux Collector and then been reprogrammed (erasing its network parameters stored in flash), you will need to remove the nv-simulation.bin file before launching the application. More information can be found on using the Linux Collector in the Linux Gateway SDK documentation. To use the Linux Collector for OAD, make sure it is built without the `IS_HEADLESS` pre-defined symbol.
 
@@ -135,13 +136,13 @@ Nwk: Started
 Sensor 0x0001: FW Ver sv:0001 bv:01
 
 
-Info: OAD file ../../prebuilt/bin/sensor_oad_offchip_secure_CC1352R1_LAUNCHXL_tirtos_ccs.bin
-cmd: f ../../prebuilt/bin/sensor_oad_offchip_secure_CC1352R1_LAUNCHXL_tirtos_ccs.bin
+Info: OAD file ../../prebuilt/bin/sensor_oad_onchip_secure_CC1352R1_LAUNCHXL_tirtos_ccs.bin
+cmd: f ../../prebuilt/bin/sensor_oad_onchip_secure_CC1352R1_LAUNCHXL_tirtos_ccs.bin
 ```
 
 Entering just `f` will report the currently selected file.
 
-A FW update of the selected sensor can be initiated with the `u` command. The next time the sensor polls, it will process the request and if the FW update is accepted, the sensor will start requesting OAD image blocks:
+A FW update of the selected sensor can be initiated with the `w` command. The next time the sensor polls it will process the request and if the FW update is accepted, the sensor will first reboot into the persistent image and start requesting OAD image blocks:
 
 ```shell
 TI Collector
@@ -156,7 +157,7 @@ cmd: w
 The sensor will display the OAD progress through the UART output:
 
 ```shell
- TI Sensor
+ TI Sensor (Persistent App)
  Press Enter for Help
 <      HELP      >
 
@@ -167,7 +168,7 @@ OAD Status: Transferring Block 1 of 975
 Once OAD is complete, the sensor will reboot. Depending on if the NV page was included in the image, the sensor may join the network.
 
 ```shell
- TI Sensor
+ TI Sensor (Persistent App)
  Press Enter for Help
 <      HELP      >
 
@@ -178,7 +179,7 @@ OAD Status: Completed Successfully
 After restarting:
 
 ```shell
- TI Sensor
+ TI Sensor (User App)
  Press Enter for Help
 <      HELP      >
 
@@ -201,22 +202,27 @@ cmd: v
 Generating the Required Binary Images
 -------------------------------------
 
-The Off-Chip OAD example requires two images to be flashed onto the sensor device (the BIM and user application). The BIM can be built from the following project:
-* `<SDK/DIR>/examples/nortos/CC13X2R1_LAUNCHXL/bim/bim_offchip`
+The On-Chip OAD example requires three images to be flashed onto the sensor device: BIM, user application, and persistent application. The BIM can be built from the following project:
+* `<SDK/DIR>/examples/nortos/CC13X2R1_LAUNCHXL/bim/bim_onchip`
 
-The user application image is created as part of the post build process in the sensor_oad_offchip project:
-* `<SDK_DIR>/examples/rtos/CC13X2R1_LAUNCHXL/ti154stack/sensor_oad_offchip_secure`
+The user application image is created as part of the post build process in the sensor_oad_onchip project:
+* `<SDK_DIR>/examples/rtos/CC13X2R1_LAUNCHXL/ti154stack/sensor_oad_onchip_secure`
 
 To update the version in the OAD header, open the project in your IDE and change the `SOFTWARE_VER` define in application/sensor/oad/oad_image_header_app.c. The two most significant bytes indicate the stack version, and the two least significant bytes indicate the application version.
 
 When the project is built under the default build configuration, the resulting bin can be found in the following output directory:
-* CCS: `<WORKSPACE_DIR>/sensor_oad_offchip_secure_CC13X2R1_LAUNCHXL_tirtos_ccs/Release/sensor_oad_offchip_secure_CC13X2R1_LAUNCHXL_tirtos_ccs.bin`
-* IAR: `<WORKSPACE_DIR>/Release/sensor_oad_offchip_secure_src_CC13X2R1_LAUNCHXL_tirtos_iar`
+* CCS: `<WORKSPACE_DIR>/sensor_oad_onchip_secure_CC13X2R1_LAUNCHXL_tirtos_ccs/Release/sensor_oad_onchip_secure_CC13X2R1_LAUNCHXL_tirtos_ccs.bin`
+* IAR: `<WORKSPACE_DIR>/Release/sensor_oad_onchip_secure_src_CC13X2R1_LAUNCHXL_tirtos_iar`
 
 #### **Note**
-> The generated .out and .hex will not have the correct CRC, hence the BIM will not boot into the image. During development, the BIM can be built with the debug configuration to allow the BIM to ignore the incorrect CRC.
+> The generated .out and .hex will not have the correct CRC, hence the BIM will not boot into the image. During development, the BIM can be built with the debug configuration to allow the BIM to ignore the incorrect CRC. Note that if a power-cycle occurs during an On-Chip OAD, ignoring the CRC check will cause the device to be bricked, which will require you to re-flash the device with a valid image.
 
 > During normal operation when flashed for the first time, the application .bin and the bim .hex file need to be loaded separately. Ensure that BIM binary is flashed/downloaded before downloading the application using the debugger for debug purposes
+
+The persistent image is built from the sensor_oad_onchip_persistent project:
+* `<SDK_DIR>/examples/rtos/CC13X2R1_LAUNCHXL/ti154stack/sensor_oad_onchip_persistent_secure`
+
+The built persistent image hex file can similarly be found in the output directory of your build configuration.
 
 Project Configuration
 --------------------------
@@ -282,28 +288,11 @@ Finally, the sensor_oad project has 3 defines related to the OAD feature, define
 * `FEATURE_BLE_OAD`: This allows the 15.4 application to revert to the persistent application to perform an OAD. Fore more information, see section "Reverting to Persistent Application"
 * `SECURITY`: This includes the OAD secure signing. This results in an application binary that is signed using an AES encryption of SHA2 hash of the image.
 
-### Turbo OAD Configuration
+Reverting to Persistent Application
+-----------------------------------
 
-Turbo OAD enables the support of using delta software updates in the OAD protocol. Delta updates are software updates that contain only the changed or updated content in the new software image. This results on average around 5x to 10x faster software updates for typical small or medium sized software updates.
+When the LEFT Button (`CONFIG_GPIO_BTN1`) is held down and a reset occurs (RESET Button or cord unplug/plug in), the user application will enter into the `OAD_markSwitch` function. This invalidates the currently running application image itself as a bootable image and performs a soft reset of the device. This will cause the BIM to boot up like normal. However, the BIM will detect that the user application image is no longer valid. This will cause the BIM to boot into the persistent application.
 
-Turbo OAD can be enabled in the project in SysConfig (TI 15.4 Stack -> Over-the-Air Download -> Turbo OAD -> Enabled Turbo OAD). When creating the initial device image, no path to the old image needs to be specified. This image will setup the device to support receiving delta images (the device still supports receiving regular OAD images as well).
-
-For the creation of delta updates however, a path to the binary running on the sensor must be provided to create the delta image. This will create a delta image (.dim) file in the build configuration output directory. This file can be uploaded to the Linux Gateway for distributing the delta image. The process of sending a delta update is the same process as described in the example usage section.
-
-Additional advanced configuration options are provided, which are discussed in the Turbo OAD SysConfig Module.
-
-Support for multiple OAD files
-------------------------------
-
-The OAD protocol supports multiple OAD images by using an Image ID that is sent when the Collector initiates the OAD and then in each OAD block request / response. This insures that the device always receives a block from the correct FW image, especially in the case where a device loses power or orphans and it is not known when it will come back on line. When an OAD image file is selected on the collector it is assigned a new image ID and added to a table, when a block request is received the image ID in the block request is used to find the correct FW image file. This insures that a device will always get a block from the correct image, no matter how long it is off line.
-
-Reverting to Factory Image
---------------------------
-
-When the LEFT Button (`CONFIG_GPIO_BTN1`) is held down and a reset occurs (RESET Button or cord unplug/plug in), the user application will enter into the `OAD_markSwitch` function. This invalidates the currently running application image itself as a bootable image and performs a soft reset of the device. This will cause the BIM to boot up like normal. However, the BIM will detect that the user application image is no longer valid. This will cause the BIM to copy the current Factory Image that is stored in External Flash to Internal Flash and perform a soft reset. Now when the BIM boots up again, the current running image (Factory Image) will be valid and the BIM will let the current image to start execution.
-
-In order for this functionality to be useful however, one first needs to have a Factory Image saved into External Flash. Luckily, when the BIM boots up and there is no current Factory Image and the current internal image is valid, a copy of the current internal image will be made effectively creating a backup of the current image. This is useful, but will not provide any special functionality other than redundancy. Instead you can first flash the LP with a BLE Simple Peripheral OAD application and BIM so that it creates a backup of that image. Then using BLE OAD send the Sensor 15.4 Image to the LP. Now, whenever you want, you can switch to the Factory Image and upgrade to any image you want.
+In the example usage section, the persistent application is a 15.4 image. However, this image can use any networking stack, such as BLE. The persistent application implements the OAD protocol, so whichever networking is stack used by the persistent application, you will have to perform On-Chip OAD according to the stack protocol.
 
 For more information about performing a BLE OAD of a 15.4 image, see the BLE5-Stack documentation under **Over-the-Air Download (OAD) > Performing a BLE OAD**.
-
-**Note: BLE OAD is not supported for CC1312 devices.**
