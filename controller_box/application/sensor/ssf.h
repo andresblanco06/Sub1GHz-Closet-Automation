@@ -428,7 +428,8 @@ extern void Ssf_OffLED(void);
  */
 extern void Ssf_displayPerStats(Smsgs_msgStatsField_t* stats);
 #endif /* DISPLAY_PER_STATS */
-
+extern void Ssf_displayControl(Smsgs_controlfield_t control);
+extern void Ssf_displayActuator(Sensor_actuator_t* actuators, uint8_t size);
 #if (USE_DMM) && !(DMM_CENTRAL)
 /*!
  * @brief       Initialize the provisioning clock.

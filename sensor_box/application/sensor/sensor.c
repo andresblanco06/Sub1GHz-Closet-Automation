@@ -545,12 +545,14 @@ void Sensor_init(void)
     /* This initializes all LPSTK's sensors, LEDs, and Buttons */
     Lpstk_init(sem, lpstkScCb);
 
+#ifndef CLOSET
     /* Set up a periodic read for sensors specified by the sensor mask */
     Lpstk_initSensorReadTimer((Lpstk_SensorMask)(LPSTK_HUMIDITY |
                                                     LPSTK_TEMPERATURE |
                                                     LPSTK_LIGHT |
                                                     //LPSTK_ACCELEROMETER |
                                                     LPSTK_HALL_EFFECT),2000);
+#endif
 #endif /* LPSTK */
 
 #ifdef FEATURE_SECURE_COMMISSIONING

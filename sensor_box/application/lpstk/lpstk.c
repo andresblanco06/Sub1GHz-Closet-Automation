@@ -275,9 +275,9 @@ void Lpstk_processEvents(void)
                                             LPSTK_TEMPERATURE |
                                             LPSTK_LIGHT |
                                             LPSTK_AIR_QUALITY), false);
+
         // Acknowledge the ALERT event
         scifAckAlertEvents();
-
         if(scCB)
         {
             scCB();
@@ -388,6 +388,8 @@ static void scTaskAlertCallback(void)
 
   // Trigger an event to read the accelerometer
   setEvent(LPSTK_EV_SC_ALERT);
+
+
 }
 
 static void powerUpSensors(Lpstk_SensorMask sensors)

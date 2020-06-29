@@ -49,6 +49,7 @@ void Actuator_init(Actuator_t *actuator, Actuator_Dimmable_t dimmable, Actuator_
     actuator->clkHandle = *clkHandle;
     actuator->clkStruct = *clkStruct;
 
+    memcpy(actuator, &temp, sizeof(Actuator_t));
 }
 
 void setDimmable(Actuator_t *actuator, Actuator_Dimmable_t dimmble){
@@ -108,7 +109,7 @@ void activateActuator(Actuator_t *actuator){
         Clock_stop(actuator->clkHandle);
     }
     if(isDimmable(actuator)){
-        float dim_in_ten_usec = (abs(100 - (actuator->dimmable))/100) * HERTZ_120_TIME;
+        float dim_in_ten_usec = (abs(100 - (actuator->level))/100) * HERTZ_120_TIME;
         if(dim_in_ten_usec < MIN_LOAD_TIME){
             setState(actuator, (Actuator_State_t) Actuator_ON);
         }

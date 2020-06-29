@@ -337,7 +337,6 @@ uint8_t Lpstk_openLightSensor(void)
         // Start the "SPI Accelerometer" Sensor Controller task
         scifStartTasksNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);
         openStatus = scifWaitOnNbl(100000);
-        scifSwTriggerExecutionCodeNbl(1 << SCIF_I2C_LIGHT_SENSOR_TASK_ID);
         // Wait for sensor controller ready callback
 //        while (!sc_ready);
     }
@@ -489,20 +488,33 @@ void Lpstk_readAirQualitySensor(Lpstk_AirQuality *airQ)
 {
     airQ->co2 = scifTaskData.sgp30GasSensor.output.co2;
     airQ->tvoc = scifTaskData.sgp30GasSensor.output.tvoc;
+
     //calcualte and pass humidity levels to SC
     int16_t temp = scifTaskData.i2cTempAndHumiditySensor.output.pTempLog[scifTaskData.i2cTempAndHumiditySensor.state.logPos];
     uint16_t hum = scifTaskData.i2cTempAndHumiditySensor.output.pHumLog[scifTaskData.i2cTempAndHumiditySensor.state.logPos];
+
     //Calculate absolute Hum using the current temp and hum to calibrate the air quality sensor
     float absHum = calculateAbsoluteHumidity(((float)temp/64), ((float)hum/64));
+
     //The sensor uses 8.8 floating point format, I need to match it before passing on the data.
-    absHum = round(absHum*100.0);
-    float frac = fmodf(absHum, 100.0);
-    float ipart = (absHum - frac)/100.0;
-    scifTaskData.sgp30GasSensor.input.absoluteHumidity = ((uint16_t) ipart << 8) | (((uint16_t) frac) & 0x00FF);
+    uint32_t absoluteHumidityScaled = (uint32_t) (1000.0f * absHum); // [mg/m^3]
+    if (absoluteHumidityScaled > 256000) {
+        absoluteHumidityScaled = 256000;
+      }
+
+    uint16_t ah_scaled = (uint16_t)(((uint64_t)absoluteHumidityScaled * 256 * 16777) >> 24);
+
+//    absHum = round(absHum*100.0);
+//    float frac = fmodf(absHum, 100.0);
+//    float ipart = (absHum - frac)/100.0;
+//    ((uint16_t) ipart << 8) | (((uint16_t) frac) & 0x00FF);
+
+    scifTaskData.sgp30GasSensor.input.absoluteHumidity = ah_scaled;
+
     // calculates 8-Bit checksum with given polynomial
     uint8_t crc = 0x00FF;
 
-    crc ^= (uint8_t) ((uint16_t) ipart & 0x00FF);
+    crc ^= (uint8_t) ((uint16_t) (ah_scaled >> 8) & 0x00FF);
 
     for (uint8_t b = 0; b < 8; b++) {
       if (crc & 0x0080)
@@ -511,7 +523,7 @@ void Lpstk_readAirQualitySensor(Lpstk_AirQuality *airQ)
         crc <<= 1;
     }
 
-    crc ^= (uint8_t) ((uint16_t) frac & 0x00FF);
+    crc ^= (uint8_t) ((uint16_t) ah_scaled & 0x00FF);
 
     for (uint8_t b = 0; b < 8; b++) {
      if (crc & 0x0080)
@@ -533,9 +545,9 @@ static float calculateAbsoluteHumidity(float temp, float hum){
 //                      [-------------------------------]
 //                      [            273.15+T           ]
 
-    float H = hum/100;
-    float exp = expf((17.62 * temp)/(243.12+temp));
-    float absHum = 216.7 * ((H*6.112*exp)/(273.15+temp));
+    float H = hum/100.0;
+    float ex = exp((17.62 * temp)/(243.12 + temp));
+    float absHum = 216.7 * (H * 6.112 * ex/(273.15 + temp));
 
     return absHum;
 }

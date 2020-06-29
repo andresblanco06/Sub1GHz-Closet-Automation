@@ -98,6 +98,7 @@ ti154stack.powerTestEnable                    = true;
 ti154stack.reportingInterval                  = 5000;
 ti154stack.pollingInterval                    = 15000;
 ti154stack.phyType                            = "phy200kbps";
+ti154stack.scanDuration                       = 1;
 ti154stack.aesccmModule.$name                 = "CONFIG_AESCCM_0";
 ti154stack.oadSettings.$name                  = "ti_ti154stack_oad_config_ti154stack_oad_mod0";
 ti154stack.toadSettings.$name                 = "ti_ti154stack_oad_config_toad_config_ti154stack_toad_config0";

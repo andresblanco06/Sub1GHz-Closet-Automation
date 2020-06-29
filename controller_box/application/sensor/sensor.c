@@ -57,6 +57,8 @@
 #include "sensor.h"
 #include <advanced_config.h>
 #include "ti_154stack_config.h"
+#include "controller/actuator/actuator.h"
+#include "controller/controller.h"
 
 #ifdef FEATURE_NATIVE_OAD
 #include "oad_client.h"
@@ -200,6 +202,8 @@ STATIC uint8_t deviceTxMsduHandle = 0;
 
 STATIC Smsgs_configReqMsg_t configSettings;
 
+Sensor_actuator_t act[TOTAL_ACTUATORS];
+
 #if !defined(OAD_IMG_A)
 /*!
  Temp Sensor field - valid only if Smsgs_dataFields_tempSensor
@@ -220,6 +224,15 @@ STATIC Smsgs_lightSensorField_t lightSensor =
  is set in frameControl.
  */
 STATIC Smsgs_humiditySensorField_t humiditySensor =
+    { 0 };
+
+STATIC Smsgs_airQualityfield_t airQuality =
+    { 0 };
+
+STATIC Smsgs_controlfield_t control =
+    { 0 };
+
+STATIC Smsgs_actuatorsfield_t actuator =
     { 0 };
 
 #ifdef LPSTK
@@ -489,6 +502,9 @@ void Sensor_init(void)
 #endif /* LPSTK */
     configSettings.frameControl |= Smsgs_dataFields_msgStats;
     configSettings.frameControl |= Smsgs_dataFields_configSettings;
+    configSettings.frameControl |= Smsgs_dataFields_control        |
+                                   Smsgs_dataFields_actuators      |
+                                   Smsgs_dataFields_airQuality ;
 #ifdef DMM_CENTRAL
     configSettings.frameControl |= Smsgs_dataFields_bleSensor;
 #endif
@@ -520,6 +536,7 @@ void Sensor_init(void)
     /* Initialize the platform specific functions */
     Ssf_init(sem);
 
+    controller_init(sem);
 #ifdef LPSTK
     /*
      * NOTE!!
@@ -837,6 +854,8 @@ void Sensor_process(void)
         Util_clearEvent(&Sensor_events, SENSOR_RESUME_EVT);
     }
 #endif /* DMM_OAD */
+
+    controller_processEvents();
 
     /* Process LLC Events */
     Jdllc_process();
@@ -1213,6 +1232,15 @@ static void dataIndCB(ApiMac_mcpsDataInd_t *pDataInd)
 
         switch(cmdId)
         {
+            //TODO: Add syncCmd
+            //contains sensor data and time
+            //extract data. just like collector does
+            //call set function
+
+            //TODO: Add override cmdID
+            //contains the name of the actuator to override and value
+            //TODO: add setPoint cmdID
+            //contains the controlling variable and set point
             case Smsgs_cmdIds_configReq:
                 processConfigRequest(pDataInd);
                 Sensor_msgStats.configRequests++;
@@ -1498,7 +1526,24 @@ static void processSensorMsgEvt(void)
                        sizeof(Smsgs_accelSensorField_t));
     }
 #endif /* LPSTK */
+    if(sensor.frameControl & Smsgs_dataFields_control)
+    {
+        memcpy(&sensor.control, &control,
+                       sizeof(Smsgs_controlfield_t));
+    }
+    if(sensor.frameControl & Smsgs_dataFields_airQuality)
+    {
+        memcpy(&sensor.airQualitySensor, &airQuality,
+                       sizeof(Smsgs_airQualityfield_t));
+    }
+    if(sensor.frameControl & Smsgs_dataFields_actuators)
+    {
+        memcpy(&sensor.actuator, &actuator,
+                       sizeof(Smsgs_actuatorsfield_t));
+        memcpy(&sensor.actuator.actuators, &actuator.actuators,
+                               (sizeof(Sensor_actuator_t)*TOTAL_ACTUATORS));
 
+    }
 #ifdef DMM_CENTRAL
     if(sensor.frameControl & Smsgs_dataFields_bleSensor)
     {
@@ -1523,6 +1568,27 @@ static void processSensorMsgEvt(void)
  */
 static void readSensors(void)
 {
+    //TODO: get from controller
+    //Set points
+    //Levels
+    //Actuator data(name, dimmable, level, etc..)
+    //co2 data
+
+    control.co2SetPoint = getSetCo2();
+    control.tempSetPoint = getSetTemp();
+    control.humiditySetPoint = getSetHum();
+    airQuality.co2 = 400;
+    airQuality.tvoc = 200;
+    actuator.totalNumber = TOTAL_ACTUATORS;
+    getActuators(act);
+
+    memset(actuator.actuators, 0, sizeof(Sensor_actuator_t) * TOTAL_ACTUATORS);
+
+    memcpy(actuator.actuators, act, sizeof(Sensor_actuator_t) * TOTAL_ACTUATORS);
+
+    Ssf_displayControl(control);
+    Ssf_displayActuator(actuator.actuators, TOTAL_ACTUATORS);
+
 #if defined(TEMP_SENSOR)
     /* Read the temp sensor values */
     tempSensor.ambienceTemp = Ssf_readTempSensor();
@@ -1600,7 +1666,21 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
         len += pMsg->bleSensor.dataLength;
     }
 #endif
-
+    if(pMsg->frameControl & Smsgs_dataFields_control)
+        {
+            //len += SMSGS_SENSOR_MSG_STATS_LEN;
+            len += sizeof(Smsgs_controlfield_t);
+        }
+    if(pMsg->frameControl & Smsgs_dataFields_airQuality)
+        {
+            //len += SMSGS_SENSOR_MSG_STATS_LEN;
+            len += sizeof(Smsgs_airQualityfield_t);
+        }
+    if(pMsg->frameControl & Smsgs_dataFields_actuators)
+        {
+            //len += SMSGS_SENSOR_MSG_STATS_LEN;
+            len += sizeof(Smsgs_actuatorsfield_t) + (sizeof(Sensor_actuator_t)*TOTAL_ACTUATORS);
+        }
     pMsgBuf = (uint8_t *)Ssf_malloc(len);
     if(pMsgBuf)
     {
@@ -1668,6 +1748,25 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
             pBuf = Util_bufferUint32(pBuf,
                                      pMsg->configSettings.pollingInterval);
 
+        }
+        if(pMsg->frameControl & Smsgs_dataFields_control)
+        {
+            pBuf = Util_bufferFloat(pBuf, pMsg->control.co2SetPoint);
+            pBuf = Util_bufferFloat(pBuf, pMsg->control.humiditySetPoint);
+            pBuf = Util_bufferFloat(pBuf, pMsg->control.tempSetPoint);
+        }
+#ifdef CLOSET
+        if(pMsg->frameControl & Smsgs_dataFields_airQuality)
+        {
+            pBuf = Util_bufferUint16(pBuf, pMsg->airQualitySensor.co2);
+            pBuf = Util_bufferUint16(pBuf, pMsg->airQualitySensor.tvoc);
+
+        }
+#endif
+        if(pMsg->frameControl & Smsgs_dataFields_actuators)
+        {
+           memcpy(pBuf, &pMsg->actuator, sizeof(Smsgs_actuatorsfield_t));
+           pBuf += sizeof(Smsgs_actuatorsfield_t);
         }
 #ifdef LPSTK
         if(pMsg->frameControl & Smsgs_dataFields_hallEffectSensor)
@@ -1947,6 +2046,18 @@ static uint16_t validateFrameControl(uint16_t frameControl)
     {
         newFrameControl |= Smsgs_dataFields_configSettings;
     }
+    if(frameControl & Smsgs_dataFields_control)
+   {
+       newFrameControl |= Smsgs_dataFields_control;
+   }
+    if(frameControl & Smsgs_dataFields_airQuality)
+   {
+       newFrameControl |= Smsgs_dataFields_airQuality;
+   }
+    if(frameControl & Smsgs_dataFields_actuators)
+   {
+       newFrameControl |= Smsgs_dataFields_actuators;
+   }
 #ifdef DMM_CENTRAL
     if(frameControl & Smsgs_dataFields_bleSensor)
     {

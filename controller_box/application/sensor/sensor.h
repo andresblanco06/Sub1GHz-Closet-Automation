@@ -50,11 +50,13 @@
  Includes
  *****************************************************************************/
 
-#include "smsgs.h"
 
 #ifdef OSAL_PORT2TIRTOS
 #include <ti/sysbios/knl/Task.h>
 #endif
+
+#include "smsgs.h"
+
 
 #ifdef FEATURE_SECURE_COMMISSIONING
 #include "sm_ti154.h"
@@ -123,9 +125,12 @@ typedef enum
     Sensor_status_invalid_state = 1
 } Sensor_status_t;
 
+
 /******************************************************************************
  Structures
  *****************************************************************************/
+
+
 
 /******************************************************************************
  Global Variables

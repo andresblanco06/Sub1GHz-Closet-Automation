@@ -50,6 +50,7 @@ struct
 #define TEMP_PID_TIMEOUT_VALUE  5000
 #define HUM_PID_TIMEOUT_VALUE   5000
 #define CO2_PID_TIMEOUT_VALUE   5000
+#define TOTAL_ACTUATORS 4
 
 static Semaphore_Handle applicationSem;
 static uint16_t controllerEvents;
@@ -100,7 +101,6 @@ static void clearEvent(uint16_t eventMask)
 
 void zeroCrossCB(uint_least8_t index){
     activateActuator(&light);
-    activateActuator(&fan);
     activateActuator(&heat);
 }
 
@@ -148,7 +148,7 @@ static void initializeCO2Clock(void){
 }
 
 static void light_init(void){
-    Actuator_init(&light, DIMMABLE, LIGHT, CONFIG_GPIO_LIGHT, &lightClkHandle, &lightClkStruct);
+    Actuator_init(&light, NOT_DIMMABLE, LIGHT, CONFIG_GPIO_LIGHT, &lightClkHandle, &lightClkStruct);
 }
 
 static void heat_init(void){
@@ -156,11 +156,11 @@ static void heat_init(void){
 }
 
 static void humidifier_init(void){
-    Actuator_init(&humidifier, DIMMABLE, HUMIDITY, CONFIG_GPIO_HUM, &humidifierClkHandle, &humidifierClkStruct);
+    Actuator_init(&humidifier, NOT_DIMMABLE, HUMIDITY, CONFIG_GPIO_HUM, &humidifierClkHandle, &humidifierClkStruct);
 }
 
 static void fan_init(void){
-    Actuator_init(&fan, DIMMABLE, AIR_QUALITY, CONFIG_GPIO_FAN, &fanClkHandle, &fanClkStruct);
+    Actuator_init(&fan, NOT_DIMMABLE, AIR_QUALITY, CONFIG_GPIO_FAN, &fanClkHandle, &fanClkStruct);
 }
 
 static void init_controller_timers()
@@ -208,6 +208,34 @@ void setSetCo2(float co2){
     co2PID.setPoint = co2;
 }
 
+extern float getSetTemp(void){
+    return tempPID.setPoint;
+}
+extern float getSetHum(void){
+    return humPID.setPoint;
+}
+extern float getSetCo2(void){
+    return co2PID.setPoint;
+}
+
+static void copyActuator(Sensor_actuator_t *actuator, Actuator_t *act){
+    actuator->dimmable = act->dimmable;
+    actuator->level = act->level;
+    actuator->state = act->state;
+    actuator->type = act->type;
+}
+
+extern void getActuators(Sensor_actuator_t *pActuators){
+    Sensor_actuator_t tempList[TOTAL_ACTUATORS];
+    memset(&tempList, 0, sizeof(Sensor_actuator_t)*TOTAL_ACTUATORS);
+    copyActuator(&tempList[0], &light);
+    copyActuator(&tempList[1], &heat);
+    copyActuator(&tempList[2], &humidifier);
+    copyActuator(&tempList[3], &fan);
+    memcpy(pActuators, tempList, sizeof(Sensor_actuator_t)*TOTAL_ACTUATORS);
+}
+
+
 void controller_init(void *evntHandle){
 
     applicationSem = evntHandle;
@@ -244,12 +272,6 @@ void controller_processEvents(void){
         tempPID.cT2 = 0;
         tempPID.eT1 = 0;
 
-        co2PID.eT2 = 0;
-        co2PID.eT1 = 0;
-        co2PID.eT0 = 0;
-        co2PID.cT2 = 0;
-        co2PID.eT1 = 0;
-
         control.co2 = 0;
         control.temperature = 0;
         control.humidity = 0;
@@ -262,6 +284,7 @@ void controller_processEvents(void){
     }
     if(controllerEvents & CONTROLLER_SYNC)
     {
+
         clearEvent(CONTROLLER_SYNC);
     }
     if(controllerEvents & CONTROLLER_TEMP_PID)
@@ -302,22 +325,15 @@ void controller_processEvents(void){
     }
     if(controllerEvents & CONTROLLER_CO2_PID)
     {
-        co2PID.eT2 = co2PID.eT1;
-        co2PID.eT1 = co2PID.eT0;
-        co2PID.eT0 = co2PID.setPoint - control.co2;
+        co2PID.eT0 = co2PID.setPoint - 100;
+        co2PID.eT1 = co2PID.setPoint + 100;
 
-        co2PID.cT2 = co2PID.cT1;
-        co2PID.eT1 = co2PID.cT0;
-
-        co2PID.eT0 = co2PID.eT1 - (0.974*co2PID.eT2) + (1.904*co2PID.cT1) - (0.904*co2PID.cT2);
-
-        if(co2PID.eT0 > 100){
-            co2PID.eT0 = 100;
-        }else if(co2PID.eT0 <= 0){
-            co2PID.eT0 = 0;
+        if(control.co2 <= co2PID.eT0){
+            setState(&fan, Actuator_ON);
         }
-
-        setLevel(&fan, co2PID.eT0);
+        else if(control.co2 >= co2PID.eT1){
+            setState(&fan, Actuator_OFF);
+        }
 
         clearEvent(CONTROLLER_CO2_PID);
     }

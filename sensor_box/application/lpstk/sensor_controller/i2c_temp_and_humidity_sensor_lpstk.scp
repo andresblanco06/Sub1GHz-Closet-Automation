@@ -526,11 +526,11 @@ if (state.i2cStatus == 0x0000) {
         //i2cDeviceWriteReg8(SGP30_I2C_ADDRESS, SGP30_IAQ_CMD, SGP30_IAQ_INIT);
 
         //    // Configure and start the next measurement
-            i2cStart();
-            i2cTx((SGP30_I2C_ADDRESS << 1) | I2C_OP_WRITE);
-            i2cTx(SGP30_IAQ_CMD);
-            i2cTx(SGP30_IAQ_INIT);
-            i2cStop();
+        i2cStart();
+        i2cTx((SGP30_I2C_ADDRESS << 1) | I2C_OP_WRITE);
+        i2cTx(SGP30_IAQ_CMD);
+        i2cTx(SGP30_IAQ_INIT);
+        i2cStop();
 
         state.sgp30state = SGP30_STATE_HUMIDITY;
 
@@ -553,7 +553,7 @@ if (state.i2cStatus == 0x0000) {
 
         state.sgp30state = SGP30_STATE_MEASURE;
 
-        fwScheduleTask(3);
+        fwScheduleTask(10);
     } else if (state.sgp30state == SGP30_STATE_MEASURE) {
         //i2cDeviceWriteReg8(SGP30_I2C_ADDRESS, SGP30_IAQ_CMD, SGP30_MEASURE_IAQ);
         i2cStart();
@@ -563,7 +563,7 @@ if (state.i2cStatus == 0x0000) {
 
         state.sgp30state = SGP30_STATE_READ;
 
-        fwScheduleTask(12);
+        fwScheduleTask(15);
     } else if (state.sgp30state == SGP30_STATE_READ) {
 
         i2cRepeatedStart();
@@ -581,9 +581,9 @@ if (state.i2cStatus == 0x0000) {
 
         state.sgp30state = SGP30_STATE_HUMIDITY;
 
-        fwScheduleTask(1000);
+        fwScheduleTask(980);
     } else {
-        state.sgp30state = SGP30_STATE_INIT;
+        state.sgp30state = SGP30_STATE_HUMIDITY;
         // We're using a mix of low-level and high-level I2C procedures in this example, so
         // clear errors in case the Termination Code runs next
         state.i2cStatus = 0x0000;

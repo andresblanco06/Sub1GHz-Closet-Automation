@@ -257,6 +257,14 @@ static Button_Handle gLeftButtonHandle;
 uint32_t sensorStatusLine;
 uint32_t perStatusLine;
 
+uint32_t controlStatusLine;
+uint32_t fanStatusLine;
+
+uint32_t lightStatusLine;
+
+uint32_t heatStatusLine;
+
+uint32_t humStatusLine;
 /******************************************************************************
  Local function prototypes
  *****************************************************************************/
@@ -413,6 +421,11 @@ void Ssf_init(void *sem)
     clientParams.maxStatusLines++;
 #endif /* FEATURE_NATIVE_OAD */
 
+    clientParams.maxStatusLines++;
+    clientParams.maxStatusLines++;
+    clientParams.maxStatusLines++;
+    clientParams.maxStatusLines++;
+    clientParams.maxStatusLines++;
 
     /* Open UI for key and LED */
     ssfCuiHndl = CUI_clientOpen(&clientParams);
@@ -457,6 +470,11 @@ void Ssf_init(void *sem)
 #ifdef DISPLAY_PER_STATS
     CUI_statusLineResourceRequest(ssfCuiHndl, "Sensor PER", false, &perStatusLine);
 #endif
+    CUI_statusLineResourceRequest(ssfCuiHndl, "Control", false, &controlStatusLine);
+    CUI_statusLineResourceRequest(ssfCuiHndl, "Fan", false, &fanStatusLine);
+    CUI_statusLineResourceRequest(ssfCuiHndl, "Light", false, &lightStatusLine);
+    CUI_statusLineResourceRequest(ssfCuiHndl, "Heat", false, &heatStatusLine);
+    CUI_statusLineResourceRequest(ssfCuiHndl, "Hum", false, &humStatusLine);
 
     if((pNV != NULL) && (pNV->readItem != NULL))
     {
@@ -1887,6 +1905,33 @@ void Ssf_displayPerStats(Smsgs_msgStatsField_t* pstats)
     CUI_statusLinePrintf(ssfCuiHndl, perStatusLine, "%d.%03d%%", (per / 1000), (per % 1000));
 }
 #endif /* DISPLAY_PER_STATS */
+
+void Ssf_displayControl(Smsgs_controlfield_t control){
+    CUI_statusLinePrintf(ssfCuiHndl, controlStatusLine, "CO2 SP: %f, Temp SP: %f, Hum SP: %f", control.co2SetPoint, control.tempSetPoint, control.humiditySetPoint);
+
+}
+
+void Ssf_displayActuator(Sensor_actuator_t* actuators, uint8_t size){
+    int i =0;
+    for(i=0; i < size; i++){
+        switch(actuators[i].type){
+            case HUMIDITY:
+                CUI_statusLinePrintf(ssfCuiHndl, humStatusLine, "sizeofDim: %d, Dimmable: %d, State: %d, Level: %d", sizeof(Actuator_Dimmable_t), (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                break;
+            case TEMPERATURE:
+                CUI_statusLinePrintf(ssfCuiHndl, heatStatusLine, "sizeofState: %d, Dimmable: %d, State: %d, Level: %d", sizeof(Actuator_State_t), (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                break;
+            case LIGHT:
+                CUI_statusLinePrintf(ssfCuiHndl, lightStatusLine, "sizeofLevel: %d, Dimmable: %d, State: %d, Level: %d", sizeof(uint8_t), (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                break;
+            case AIR_QUALITY:
+                CUI_statusLinePrintf(ssfCuiHndl, fanStatusLine, "sizeofType: %d, Dimmable: %d, State: %d, Level: %d", sizeof(Actuator_Type_t), (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                break;
+            default:
+                break;
+        }
+    }
+}
 
 /**
  *  @brief Callback to be called when the UI sets PAN ID.

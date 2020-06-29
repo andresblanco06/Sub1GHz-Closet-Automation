@@ -272,6 +272,20 @@ uint32_t Util_buildUint32(uint8_t byte0, uint8_t byte1, uint8_t byte2,
 }
 
 /*!
+ Build a float out of 4 uint8_t variables
+
+ Public function defined in mac_util.h
+ */
+float Util_buildFloat(uint8_t byte0, uint8_t byte1, uint8_t byte2,
+                            uint8_t byte3)
+{
+    float val;
+    uint8_t bytes[] = {byte0, byte1, byte2, byte3};
+    memcpy(&val, &bytes, sizeof(val));
+    return val;
+}
+
+/*!
  Pull 1 uint8_t out of a uint32_t
 
  Public function defined in mac_util.h
@@ -328,6 +342,19 @@ uint8_t *Util_bufferUint32(uint8_t *pBuf, uint32_t val)
 
     return(pBuf);
 }
+
+/*!
+ Break and buffer a float value - LSB first
+
+ Public function defined in mac_util.h
+ */
+uint8_t *Util_bufferFloat(uint8_t *pBuf, float val)
+{
+    memcpy(pBuf, &val, sizeof(val));
+    pBuf += 4;
+    return(pBuf);
+}
+
 
 /*!
   Utility function to clear an event
