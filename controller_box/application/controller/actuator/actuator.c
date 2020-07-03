@@ -201,9 +201,69 @@ static void clockCB(UArg a0){
         toggleState(actuator);
 
         Clock_setTimeout(actuator->clkHandle, HERTZ_120_TIME);
+    }else{
+        //get current time
+        UTCTimeStruct *currTime = {0};
+        UTC_convertUTCTime(currTime, UTC_getClock());
+
+        //force day year and month to zero
+        currTime->day = 1;
+        currTime->month = 1;
+        currTime->year = 2000;
+
+        //convert to secs
+        uint32_t currTime_secs = (uint32_t) UTC_convertUTCSecs(currTime);
+        uint32_t on_time_secs = (uint32_t) UTC_convertUTCSecs(&actuator->onSchedule);
+        uint32_t off_time_secs = (uint32_t) UTC_convertUTCSecs(&actuator->offSchedule);
+        uint32_t delta_time_secs = 0;
+
+        //TODO: Optimize this logic! IT IS NASTY!
+
+        if(currTime_secs > on_time_secs){
+            if(currTime_secs < off_time_secs){
+                //Supposed to be Actuator_ON
+                //Turn it Actuator_ON
+                setState(actuator, (Actuator_State_t) Actuator_ON);
+                //Schedule Actuator_OFF Timer
+                delta_time_secs = currTime_secs - off_time_secs;
+            }
+            else{
+                //Supposed to be Actuator_OFF
+                //Turn it Actuator_OFF
+                setState(actuator, (Actuator_State_t) Actuator_OFF);
+                //Schedule Actuator_ON Timer
+                delta_time_secs = currTime_secs - on_time_secs;
+            }
+        }
+        else if(currTime_secs > off_time_secs){
+            //Supposed to be Actuator_OFF
+            //Turn it Actuator_OFF
+            setState(actuator, (Actuator_State_t) Actuator_OFF);
+            //Schedule Actuator_ON Timer
+            delta_time_secs = currTime_secs - on_time_secs;
+        }
+        else{
+            //Both Actuator_ON/Actuator_OFF Schedules are in the future
+            //I do not know which one comes first
+            if(on_time_secs > off_time_secs){
+                //Actuator_OFF Comes first
+                //Supposed to be Actuator_ON
+                //Turn it Actuator_ON
+                setState(actuator, (Actuator_State_t) Actuator_ON);
+                //Schedule Actuator_OFF Timer
+                delta_time_secs = currTime_secs - off_time_secs;
+            }
+            else{
+                //Supposed to be Actuator_OFF
+                //Turn it Actuator_OFF
+                setState(actuator, (Actuator_State_t) Actuator_OFF);
+                //Schedule Actuator_ON Timer
+                delta_time_secs = currTime_secs - on_time_secs;
+            }
+        }
+        Clock_setTimeout(actuator->clkHandle, (delta_time_secs / 100000));
     }
         Clock_start(actuator->clkHandle);
-
 }
 
 static void initClock(Actuator_t *actuator, Clock_Handle *clkHandle, Clock_Struct *clkStruct){

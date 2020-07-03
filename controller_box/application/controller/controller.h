@@ -39,6 +39,9 @@ extern void setSetCo2(float co2);
 extern float getSetTemp(void);
 extern float getSetHum(void);
 extern float getSetCo2(void);
+extern float getTemp(void);
+extern float getHum(void);
+extern float getCo2(void);
 extern void getActuators(Sensor_actuator_t *pActuators);
 
 extern void controller_init(void *evntHandle);

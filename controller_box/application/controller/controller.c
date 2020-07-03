@@ -6,13 +6,12 @@
 #include "util_timer.h"
 #include "mac_util.h"
 
-
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/knl/Clock.h>
 #include <ti/sysbios/knl/Event.h>
 
 #include "ti_drivers_config.h"
-
+#include "sensor.h"
 /******************************************************************************
  Constants and definitions
  *****************************************************************************/
@@ -50,6 +49,7 @@ struct
 #define TEMP_PID_TIMEOUT_VALUE  5000
 #define HUM_PID_TIMEOUT_VALUE   5000
 #define CO2_PID_TIMEOUT_VALUE   5000
+#define SYNC_TIMEOUT_VALUE      60000
 #define TOTAL_ACTUATORS 4
 
 static Semaphore_Handle applicationSem;
@@ -77,12 +77,12 @@ static Clock_Struct fanClkStruct;
 static Clock_Handle tempPIDClkHandle;
 static Clock_Handle humPIDClkHandle;
 static Clock_Handle co2PIDClkHandle;
+static Clock_Handle syncClkHandle;
 
 static Clock_Struct tempPIDClkStruct;
 static Clock_Struct humPIDClkStruct;
 static Clock_Struct co2PIDClkStruct;
-
-
+static Clock_Struct syncClkStruct;
 
 static void setEvent(uint16_t eventMask)
 {
@@ -100,7 +100,7 @@ static void clearEvent(uint16_t eventMask)
 }
 
 void zeroCrossCB(uint_least8_t index){
-    activateActuator(&light);
+//    activateActuator(&light);
     activateActuator(&heat);
 }
 
@@ -114,6 +114,11 @@ void runHumPIDTimeoutCallback(UArg a0){
 
 void runCo2PIDTimeoutCallback(UArg a0){
     setEvent(a0);
+}
+
+void runSyncTimeoutCallback(UArg a0){
+    setEvent(a0);
+    sendSyncReq();
 }
 
 static void initializeTempPIDClock(void)
@@ -146,7 +151,15 @@ static void initializeCO2Clock(void){
                                           false,
                                           CONTROLLER_CO2_PID);
 }
-
+static void initializeSyncClock(void){
+    /* Initialize the timers needed for this application */
+    syncClkHandle = Timer_construct(&syncClkStruct,
+                                          runSyncTimeoutCallback,
+                                          SYNC_TIMEOUT_VALUE,
+                                          SYNC_TIMEOUT_VALUE,
+                                          false,
+                                          CONTROLLER_SYNC);
+}
 static void light_init(void){
     Actuator_init(&light, NOT_DIMMABLE, LIGHT, CONFIG_GPIO_LIGHT, &lightClkHandle, &lightClkStruct);
 }
@@ -168,6 +181,7 @@ static void init_controller_timers()
     initializeTempPIDClock();
     initializeHumPIDClock();
     initializeCO2Clock();
+    initializeSyncClock();
 }
 
 static void init_controller_actuators()
@@ -217,6 +231,15 @@ extern float getSetHum(void){
 extern float getSetCo2(void){
     return co2PID.setPoint;
 }
+extern float getTemp(void){
+    return control.temperature;
+}
+extern float getHum(void){
+    return control.humidity;
+}
+extern float getCo2(void){
+    return control.co2;
+}
 
 static void copyActuator(Sensor_actuator_t *actuator, Actuator_t *act){
     actuator->dimmable = act->dimmable;
@@ -261,7 +284,7 @@ void controller_processEvents(void){
     if(controllerEvents & CONTROLLER_START)
     {
         UTC_init();
-
+        Timer_start(&syncClkStruct);
         Timer_start(&tempPIDClkStruct);
         Timer_start(&humPIDClkStruct);
         Timer_start(&co2PIDClkStruct);
@@ -284,7 +307,6 @@ void controller_processEvents(void){
     }
     if(controllerEvents & CONTROLLER_SYNC)
     {
-
         clearEvent(CONTROLLER_SYNC);
     }
     if(controllerEvents & CONTROLLER_TEMP_PID)

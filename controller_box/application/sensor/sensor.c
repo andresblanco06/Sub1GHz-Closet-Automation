@@ -303,8 +303,14 @@ static void lpstkAccelerometerTiltCb(void);
 #endif /* LPSTK */
 
 static void processConfigRequest(ApiMac_mcpsDataInd_t *pDataInd);
+static void processControlRequest(ApiMac_mcpsDataInd_t *pDataInd);
+static void processSyncResponse(ApiMac_mcpsDataInd_t *pDataInd);
 static void processBroadcastCtrlMsg(ApiMac_mcpsDataInd_t *pDataInd);
+
 static bool sendConfigRsp(ApiMac_sAddr_t *pDstAddr, Smsgs_configRspMsg_t *pMsg);
+static bool sendControlRsp(ApiMac_sAddr_t *pDstAddr, Smsgs_controlRspMsg_t *pMsg);
+bool sendSyncReq();
+
 static uint16_t validateFrameControl(uint16_t frameControl);
 
 #if defined(DEVICE_TYPE_MSG)
@@ -1236,14 +1242,19 @@ static void dataIndCB(ApiMac_mcpsDataInd_t *pDataInd)
             //contains sensor data and time
             //extract data. just like collector does
             //call set function
-
+            case Smsgs_cmdIds_syncRsp:
+                processSyncResponse(pDataInd);
+                break;
             //TODO: Add override cmdID
             //contains the name of the actuator to override and value
             //TODO: add setPoint cmdID
             //contains the controlling variable and set point
+            case Smsgs_cmdIds_controlReq:
+                processControlRequest(pDataInd);
+                break;
             case Smsgs_cmdIds_configReq:
-                processConfigRequest(pDataInd);
-                Sensor_msgStats.configRequests++;
+//                processConfigRequest(pDataInd);
+//                Sensor_msgStats.configRequests++;
                 break;
 
             case Smsgs_cmdIds_trackingReq:
@@ -1577,18 +1588,18 @@ static void readSensors(void)
     control.co2SetPoint = getSetCo2();
     control.tempSetPoint = getSetTemp();
     control.humiditySetPoint = getSetHum();
+
     airQuality.co2 = 400;
     airQuality.tvoc = 200;
+
     actuator.totalNumber = TOTAL_ACTUATORS;
     getActuators(act);
-
     memset(actuator.actuators, 0, sizeof(Sensor_actuator_t) * TOTAL_ACTUATORS);
-
     memcpy(actuator.actuators, act, sizeof(Sensor_actuator_t) * TOTAL_ACTUATORS);
 
     Ssf_displayControl(control);
     Ssf_displayActuator(actuator.actuators, TOTAL_ACTUATORS);
-
+    Ssf_displayTime();
 #if defined(TEMP_SENSOR)
     /* Read the temp sensor values */
     tempSensor.ambienceTemp = Ssf_readTempSensor();
@@ -1926,6 +1937,70 @@ static void processConfigRequest(ApiMac_mcpsDataInd_t *pDataInd)
 #endif /* USE_DMM && !DMM_CENTRAL */
 }
 
+static void processControlRequest(ApiMac_mcpsDataInd_t *pDataInd)
+{
+    Smsgs_statusValues_t stat = Smsgs_statusValues_invalid;
+    Smsgs_controlRspMsg_t controlRsp;
+
+    memset(&controlRsp, 0, sizeof(Smsgs_controlRspMsg_t));
+
+    /* Make sure the message is the correct size */
+        if(pDataInd->msdu.len == sizeof(Smsgs_controlReqMsg_t))
+        {
+            uint8_t *pBuf = pDataInd->msdu.p;
+            //Discard the first byte, we do not need the cmd ID
+            pBuf++;
+            setSetCo2(Util_buildFloat(pBuf[0], pBuf[1], pBuf[2], pBuf[3]));
+            pBuf += 4;
+            setSetHum(Util_buildFloat(pBuf[0], pBuf[1], pBuf[2], pBuf[3]));
+            pBuf += 4;
+            setSetTemp(Util_buildFloat(pBuf[0], pBuf[1], pBuf[2], pBuf[3]));
+            pBuf += 4;
+            setHum(Util_buildFloat(pBuf[0], pBuf[1], pBuf[2], pBuf[3]));
+            pBuf += 4;
+            setTemp(Util_buildFloat(pBuf[0], pBuf[1], pBuf[2], pBuf[3]));
+            pBuf += 4;
+
+            stat = Smsgs_statusValues_success;
+            collectorAddr.addrMode = pDataInd->srcAddr.addrMode;
+            if(collectorAddr.addrMode == ApiMac_addrType_short)
+            {
+                collectorAddr.addr.shortAddr = pDataInd->srcAddr.addr.shortAddr;
+            }
+            else
+            {
+                memcpy(collectorAddr.addr.extAddr, pDataInd->srcAddr.addr.extAddr,
+                       (APIMAC_SADDR_EXT_LEN));
+            }
+
+            controlRsp.co2SetPoint = getSetCo2();
+            controlRsp.humiditySetPoint = getSetHum();
+            controlRsp.tempSetPoint = getSetTemp();
+            controlRsp.humidity = getHum();
+            controlRsp.temp = getTemp();
+        }
+
+        /* Send the response message */
+        controlRsp.cmdId = Smsgs_cmdIds_controlRsp;
+        controlRsp.status = stat;
+
+        /* Response the the source device */
+//        sendControlRsp(&pDataInd->srcAddr, &controlRsp);
+
+}
+
+static void processSyncResponse(ApiMac_mcpsDataInd_t *pDataInd)
+{
+    /* Make sure the message is the correct size */
+    if(pDataInd->msdu.len == sizeof(Smsgs_syncRspMsg_t))
+    {
+        uint8_t *pBuf = pDataInd->msdu.p;
+        /* Parse the message */
+        pBuf++;
+        UTC_setClock((UTCTime) Util_parseUint32(pBuf));
+        pBuf += 4;
+    }
+}
 /*!
  * @brief      Process the Broadcast Control Msg.
  *
@@ -1997,6 +2072,81 @@ static bool sendConfigRsp(ApiMac_sAddr_t *pDstAddr, Smsgs_configRspMsg_t *pMsg)
 
     return (Sensor_sendMsg(Smsgs_cmdIds_configRsp, pDstAddr, true,
                     SMSGS_CONFIG_RESPONSE_MSG_LENGTH, msgBuf));
+}
+
+static bool sendControlRsp(ApiMac_sAddr_t *pDstAddr, Smsgs_controlRspMsg_t *pMsg)
+{
+    uint8_t msgBuf[sizeof(Smsgs_controlRspMsg_t)];
+    uint8_t *pBuf = msgBuf;
+
+    *pBuf++ = (uint8_t) Smsgs_cmdIds_controlRsp;
+    pBuf = Util_bufferUint16(pBuf, pMsg->status);
+    pBuf = Util_bufferFloat(pBuf, pMsg->co2SetPoint);
+    pBuf = Util_bufferFloat(pBuf, pMsg->humiditySetPoint);
+    pBuf = Util_bufferFloat(pBuf, pMsg->tempSetPoint);
+    pBuf = Util_bufferFloat(pBuf, pMsg->humidity);
+    pBuf = Util_bufferFloat(pBuf, pMsg->temp);
+
+    return (Sensor_sendMsg(Smsgs_cmdIds_controlRsp, pDstAddr, true,
+                           sizeof(Smsgs_controlRspMsg_t), msgBuf));
+}
+
+bool sendSyncReq()
+{
+    uint8_t msgBuf[sizeof(Smsgs_syncReqMsg_t)];
+
+    msgBuf[0] = (uint8_t) Smsgs_cmdIds_syncReq;
+
+    ApiMac_sAddr_t * pDstAddr = &collectorAddr;
+    bool ret = false;
+    /* information about the network */
+    ApiMac_mcpsDataReq_t dataReq;
+
+    /* Construct the data request field */
+    memset(&dataReq, 0, sizeof(ApiMac_mcpsDataReq_t));
+    memcpy(&dataReq.dstAddr, pDstAddr, sizeof(ApiMac_sAddr_t));
+
+    /* set the correct address mode. */
+    if(pDstAddr->addrMode == ApiMac_addrType_extended)
+    {
+        dataReq.srcAddrMode = ApiMac_addrType_extended;
+    }
+    else
+    {
+        dataReq.srcAddrMode = ApiMac_addrType_short;
+    }
+
+    dataReq.dstPanId = parentInfo.devInfo.panID;
+
+    dataReq.msduHandle = getMsduHandle(Smsgs_cmdIds_syncReq);
+
+    dataReq.txOptions.ack = false;
+    dataReq.txOptions.noRetransmits = true;
+    dataReq.txOptions.noConfirm = true;
+
+
+    dataReq.msdu.len = sizeof(Smsgs_syncReqMsg_t);
+    dataReq.msdu.p = msgBuf;
+
+#ifdef FEATURE_MAC_SECURITY
+#ifdef FEATURE_SECURE_COMMISSIONING
+    {
+        extern ApiMac_sAddrExt_t ApiMac_extAddr;
+        SM_getSrcDeviceSecurityInfo(ApiMac_extAddr, SM_Sensor_SAddress, &dataReq.sec);
+    }
+#else
+    Jdllc_securityFill(&dataReq.sec);
+#endif /* FEATURE_SECURE_COMMISSIONING */
+#endif /* FEATURE_MAC_SECURITY */
+
+    /* Send the message */
+    if(ApiMac_mcpsDataReq(&dataReq) == ApiMac_status_success)
+    {
+        ret = true;
+    }
+
+    return (ret);
+
 }
 
 /*!

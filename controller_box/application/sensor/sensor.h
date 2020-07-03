@@ -197,6 +197,7 @@ extern bool Sensor_sendMsg(Smsgs_cmdIds_t type, ApiMac_sAddr_t *pDstAddr,
  */
 extern void Sensor_sendIdentifyLedRequest(void);
 
+extern bool sendSyncReq();
 
 #ifdef FEATURE_SECURE_COMMISSIONING
 /*!

@@ -83,6 +83,8 @@
 #include "sensor.h"
 #include "smsgs.h"
 #include "ssf.h"
+#include "controller/time/utc_clock.h"
+
 #include "ti_154stack_config.h"
 
 #ifdef FEATURE_NATIVE_OAD
@@ -265,10 +267,32 @@ uint32_t lightStatusLine;
 uint32_t heatStatusLine;
 
 uint32_t humStatusLine;
-/******************************************************************************
- Local function prototypes
- *****************************************************************************/
 
+uint32_t timeStatusLine;
+
+// Month string
+static const char timeMonthStr[12][3] =
+{
+  {'J', 'a', 'n'},
+  {'F', 'e', 'b'},
+  {'M', 'a', 'r'},
+  {'A', 'p', 'r'},
+  {'M', 'a', 'y'},
+  {'J', 'u', 'n'},
+  {'J', 'u', 'l'},
+  {'A', 'u', 'g'},
+  {'S', 'e', 'p'},
+  {'O', 'c', 't'},
+  {'N', 'o', 'v'},
+  {'D', 'e', 'c'}
+};
+
+/*********************************************************************
+ * LOCAL FUNCTIONS
+ */
+
+static char *num2Str(char *pStr, uint8_t num);
+static char *year2Str(char *pStr, uint16_t year);
 #ifndef DMM_CENTRAL
 static void processReadingTimeoutCallback(UArg a0);
 #endif
@@ -475,7 +499,7 @@ void Ssf_init(void *sem)
     CUI_statusLineResourceRequest(ssfCuiHndl, "Light", false, &lightStatusLine);
     CUI_statusLineResourceRequest(ssfCuiHndl, "Heat", false, &heatStatusLine);
     CUI_statusLineResourceRequest(ssfCuiHndl, "Hum", false, &humStatusLine);
-
+    CUI_statusLineResourceRequest(ssfCuiHndl, "Time", false, &timeStatusLine);
     if((pNV != NULL) && (pNV->readItem != NULL))
     {
         /* Attempt to retrieve reason for the reset */
@@ -1916,16 +1940,16 @@ void Ssf_displayActuator(Sensor_actuator_t* actuators, uint8_t size){
     for(i=0; i < size; i++){
         switch(actuators[i].type){
             case HUMIDITY:
-                CUI_statusLinePrintf(ssfCuiHndl, humStatusLine, "sizeofDim: %d, Dimmable: %d, State: %d, Level: %d", sizeof(Actuator_Dimmable_t), (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                CUI_statusLinePrintf(ssfCuiHndl, humStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
                 break;
             case TEMPERATURE:
-                CUI_statusLinePrintf(ssfCuiHndl, heatStatusLine, "sizeofState: %d, Dimmable: %d, State: %d, Level: %d", sizeof(Actuator_State_t), (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                CUI_statusLinePrintf(ssfCuiHndl, heatStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
                 break;
             case LIGHT:
-                CUI_statusLinePrintf(ssfCuiHndl, lightStatusLine, "sizeofLevel: %d, Dimmable: %d, State: %d, Level: %d", sizeof(uint8_t), (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                CUI_statusLinePrintf(ssfCuiHndl, lightStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
                 break;
             case AIR_QUALITY:
-                CUI_statusLinePrintf(ssfCuiHndl, fanStatusLine, "sizeofType: %d, Dimmable: %d, State: %d, Level: %d", sizeof(Actuator_Type_t), (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                CUI_statusLinePrintf(ssfCuiHndl, fanStatusLine, "Dimmable: %d, State: %d, Level: %d",(actuators[i].dimmable),(actuators[i].state), actuators[i].level);
                 break;
             default:
                 break;
@@ -1933,6 +1957,71 @@ void Ssf_displayActuator(Sensor_actuator_t* actuators, uint8_t size){
     }
 }
 
+/*********************************************************************
+ * @fn      num2Str()
+ *
+ * @brief   Convert unsigned int 0-99 to decimal digit string.
+ *
+ * @return  pointer to string
+ */
+static char *num2Str(char *pStr, uint8_t num)
+{
+  *pStr++ = (num / 10) + '0';
+  *pStr++ = (num % 10) + '0';
+
+  return pStr;
+}
+
+/*********************************************************************
+ * @fn      num2Str()
+ *
+ * @brief   Convert a year [9999-0000] to decimal digit string.
+ *          Note: this assumes the device's longevity will not surpass
+ *          year 9999.
+ *
+ * @return  pointer to string
+ */
+static char *year2Str(char *pStr, uint16_t year)
+{
+  //thousands
+  *pStr++ = ((year / 1000) % 10) + '0';
+  //hundreds
+  *pStr++ = ((year / 100) % 10) + '0';
+  //tens
+  *pStr++ = ((year / 10) % 10) + '0';
+  //units
+  *pStr++ = (year % 10) + '0';
+
+  return pStr;
+}
+
+void Ssf_displayTime(){
+    char displayBuf[20];
+    char *p = displayBuf;
+    UTCTimeStruct time;
+    memset(displayBuf, 0x00, 20);
+
+    // Get time structure from UTC.
+    UTC_convertUTCTime(&time, UTC_getClock());
+
+    // Display is in the format:
+    // HH:MM MmmDD YYYY
+    p = num2Str(p, time.hour);
+    *p++ = ':';
+    p = num2Str(p, time.minutes);
+    *p++ = ' ';
+
+    *p++ = timeMonthStr[time.month][0];
+    *p++ = timeMonthStr[time.month][1];
+    *p++ = timeMonthStr[time.month][2];
+
+    p = num2Str(p, time.day + 1);
+    *p++ = ' ';
+
+    p = year2Str(p, time.year);
+
+    CUI_statusLinePrintf(ssfCuiHndl, timeStatusLine, "CurrentTime(s): %d, CurrentDateTime: %s", (uint32_t) UTC_getClock(), displayBuf);
+}
 /**
  *  @brief Callback to be called when the UI sets PAN ID.
  */

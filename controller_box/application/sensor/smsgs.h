@@ -257,7 +257,15 @@ The <b>Sensor Ramp Data Message</b> is defined as:
     /* Device type request msg */
     Smsgs_cmdIds_DeviceTypeReq = 16,
     /* Device type response msg */
-    Smsgs_cmdIds_DeviceTypeRsp = 17
+    Smsgs_cmdIds_DeviceTypeRsp = 17,
+    /*! Configuration message, sent from the collector to the sensor */
+    Smsgs_cmdIds_controlReq = 18,
+    /*! Configuration Response message, sent from the sensor to the collector */
+    Smsgs_cmdIds_controlRsp = 19,
+    /*! Configuration message, sent from the collector to the sensor */
+    Smsgs_cmdIds_syncReq = 20,
+    /*! Configuration Response message, sent from the sensor to the collector */
+    Smsgs_cmdIds_syncRsp = 21,
 
  } Smsgs_cmdIds_t;
 
@@ -313,6 +321,63 @@ typedef enum
 /******************************************************************************
  Structures - Building blocks for the over-the-air sensor messages
  *****************************************************************************/
+
+
+typedef struct _Smsgs_syncreqmsg_t
+{
+    /*! Command ID - 1 byte */
+    Smsgs_cmdIds_t cmdId;
+} Smsgs_syncReqMsg_t;
+/*!
+ Configuration Request message: sent from controller to the sensor.
+ */
+typedef struct _Smsgs_syncrspmsg_t
+{
+    /*! Command ID - 1 byte */
+    Smsgs_cmdIds_t cmdId;
+    UTCTime time;
+} Smsgs_syncRspMsg_t;
+
+/*!
+ Configuration Request message: sent from controller to the sensor.
+ */
+typedef struct _Smsgs_controlreqmsg_t
+{
+    /*! Command ID - 1 byte */
+    Smsgs_cmdIds_t cmdId;
+    /*! co2 value. */
+    float co2SetPoint;
+    /*! tvoc value. */
+    float humiditySetPoint;
+    /*! tvoc value. */
+    float tempSetPoint;
+    /*! co2 value. */
+    float humidity;
+    /*! tvoc value. */
+    float temp;
+} Smsgs_controlReqMsg_t;
+/*!
+ Configuration Request message: sent from controller to the sensor.
+ */
+typedef struct _Smsgs_controlrspmsg_t
+{
+    /*! Command ID - 1 byte */
+    Smsgs_cmdIds_t cmdId;
+    /*! Response Status - 2 bytes */
+    Smsgs_statusValues_t status;
+    /*! co2 value. */
+    float co2SetPoint;
+    /*! tvoc value. */
+    float humiditySetPoint;
+    /*! tvoc value. */
+    float tempSetPoint;
+    /*! co2 value. */
+    float humidity;
+    /*! tvoc value. */
+    float temp;
+} Smsgs_controlRspMsg_t;
+
+
 /*!
  Configuration Request message: sent from controller to the sensor.
  */
