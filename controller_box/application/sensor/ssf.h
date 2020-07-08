@@ -53,6 +53,8 @@
 #include "jdllc.h"
 #include "smsgs.h"
 #include "cui.h"
+#include "controller/controller.h"
+
 #ifdef FEATURE_SECURE_COMMISSIONING
 #include "sm_ti154.h"
 #endif
@@ -428,8 +430,10 @@ extern void Ssf_OffLED(void);
  */
 extern void Ssf_displayPerStats(Smsgs_msgStatsField_t* stats);
 #endif /* DISPLAY_PER_STATS */
-extern void Ssf_displayControl(Smsgs_controlfield_t control);
-extern void Ssf_displayActuator(Sensor_actuator_t* actuators, uint8_t size);
+extern void Ssf_displayControl(Control_t control, float co2SetPoint,
+                               float tempSetPoint, float humiditySetPoint);
+extern void Ssf_displayActuator(Actuator_t** actuators, uint8_t size);
+extern void Ssf_displaySchedule(Actuator_t *light);
 extern void Ssf_displayTime();
 #if (USE_DMM) && !(DMM_CENTRAL)
 /*!

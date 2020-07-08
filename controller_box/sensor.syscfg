@@ -52,9 +52,9 @@ GPIO1.pull              = "Pull Down";
 GPIO1.gpioPin.$assign   = "boosterpack.5";
 GPIO1.pinInstance.$name = "CONFIG_PIN_3";
 
-GPIO2.$name             = "CONFIG_GPIO_FAN";
 GPIO2.mode              = "Output";
 GPIO2.pull              = "Pull Down";
+GPIO2.$name             = "CONFIG_GPIO_SOLENOID";
 GPIO2.gpioPin.$assign   = "boosterpack.24";
 GPIO2.pinInstance.$name = "CONFIG_PIN_2";
 

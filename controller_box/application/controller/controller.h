@@ -6,14 +6,45 @@
 #include <ti/sysbios/knl/Queue.h>
 #include <ti/drivers/GPIO.h>
 #include "smsgs.h"
-
+#include <ti/sysbios/knl/Event.h>
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+/* controller Events */
+
+typedef enum
+{
+    CONTROLLER_START                 = Event_Id_00,
+    CONTROLLER_SYNC                  = Event_Id_01,
+    CONTROLLER_TEMP_PID              = Event_Id_02,
+    CONTROLLER_HUM_PID               = Event_Id_03,
+    CONTROLLER_CO2_PID               = Event_Id_04,
+} controller_Events;
+
+typedef struct
+{
+    float    p;
+    float    i;
+    float    d;
+    int16_t    eT2;
+    int16_t    eT1;
+    int16_t    eT0;
+    int16_t    cT2;
+    int16_t    cT1;
+    int16_t    cT0;
+    float    setPoint;
+} PID_t;
+
+typedef struct
+{
+    float temperature;
+    float humidity;
+    float co2;
+} Control_t;
 
 static void copyActuator(Sensor_actuator_t *actuator, Actuator_t *act);
-static void setEvent(uint16_t eventMask);
+extern void setEvent(uint16_t eventMask);
 static void clearEvent(uint16_t eventMask);
 void zeroCrossCB(uint_least8_t index);
 void runTempPIDTimeoutCallback(UArg a0);
@@ -35,6 +66,7 @@ extern void setCo2(float co2);
 extern void setSetTemp(float temp);
 extern void setSetHum(float hum);
 extern void setSetCo2(float co2);
+extern void setSchedule(uint8_t *pBuf);
 
 extern float getSetTemp(void);
 extern float getSetHum(void);

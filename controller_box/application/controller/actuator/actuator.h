@@ -29,8 +29,8 @@ typedef enum
 
 typedef enum
 {
-    Actuator_OFF,
-    Actuator_ON
+    Actuator_OFF = 0x00,
+    Actuator_ON = 0x01
 } Actuator_State_t;
 
 typedef struct
@@ -73,9 +73,9 @@ extern void setPin(Actuator_t *actuator, uint8_t pin);
 //type
 extern void setType(Actuator_t *actuator, Actuator_Type_t type);
 //set Schedule
-extern void setOnSchedule(Actuator_t *actuator, UTCTimeStruct schedule);
+extern void setOnSchedule(Actuator_t *actuator, UTCTimeStruct *schedule);
 //set Schedule
-extern void setOffSchedule(Actuator_t *actuator, UTCTimeStruct schedule);
+extern void setOffSchedule(Actuator_t *actuator, UTCTimeStruct *schedule);
 //Start regular action
 extern void activateActuator(Actuator_t *actuator);
 

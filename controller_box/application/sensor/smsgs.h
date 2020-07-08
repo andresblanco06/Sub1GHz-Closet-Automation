@@ -355,6 +355,8 @@ typedef struct _Smsgs_controlreqmsg_t
     float humidity;
     /*! tvoc value. */
     float temp;
+    uint32_t onSchedule;
+    uint32_t offSchedule;
 } Smsgs_controlReqMsg_t;
 /*!
  Configuration Request message: sent from controller to the sensor.
@@ -375,6 +377,8 @@ typedef struct _Smsgs_controlrspmsg_t
     float humidity;
     /*! tvoc value. */
     float temp;
+    uint32_t onSchedule;
+    uint32_t offSchedule;
 } Smsgs_controlRspMsg_t;
 
 

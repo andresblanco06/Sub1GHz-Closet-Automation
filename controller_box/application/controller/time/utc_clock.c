@@ -95,7 +95,7 @@ Clock_Struct UTC_clock;
 
 // Time is the number of seconds since 0 hrs, 0 minutes, 0 seconds, on the
 // 1st of January 2000 UTC.
-UTCTime UTC_timeSeconds = 0;
+static volatile UTCTime UTC_timeSeconds = 0;
 
 /*********************************************************************
  * LOCAL FUNCTION PROTOTYPES

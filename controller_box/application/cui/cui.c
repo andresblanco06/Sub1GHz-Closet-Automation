@@ -1428,7 +1428,7 @@ static CUI_retVal_t CUI_writeString(void * _buffer, size_t _size)
 
     if ((sizeof(gRingBuff) - gRingBuffPendLen) < _size)
     {
-        uint8_t i;
+        uint8_t i = 0;
         for (i = 0; i < 10; i++)
         {
             if ((sizeof(gRingBuff) - gRingBuffTailIdx) < gRingBuffPendLen)

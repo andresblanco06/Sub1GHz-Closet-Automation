@@ -15,4 +15,5 @@
 	<templateProperties value="id=sensor_oad_onchip_secure_CC1352R1_LAUNCHXL_tirtos_ccs.projectspec.sensor_oad_onchip_secure_CC1352R1_LAUNCHXL_tirtos_ccs,type=rtsc,xdcToolsVersion=3_61_00_16_core,target=ti.targets.arm.elf.M4F,platform=ti.platforms.simplelink:CC1352R1F3,buildProfile=release,isHybrid=true,configuroOptions= --compileOptions &quot;${COMPILER_FLAGS} &quot;"/>
 	<origin value="C:\ti\simplelink_cc13x2_26x2_sdk_4_10_00_78\examples\rtos\CC1352R1_LAUNCHXL\ti154stack\sensor_oad_onchip_secure\tirtos\ccs\sensor_oad_onchip_secure_CC1352R1_LAUNCHXL_tirtos_ccs.projectspec"/>
 	<filesToOpen value=""/>
+	<isTargetManual value="false"/>
 </projectOptions>

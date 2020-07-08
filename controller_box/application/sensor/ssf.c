@@ -260,7 +260,7 @@ uint32_t sensorStatusLine;
 uint32_t perStatusLine;
 
 uint32_t controlStatusLine;
-uint32_t fanStatusLine;
+uint32_t solenoidStatusLine;
 
 uint32_t lightStatusLine;
 
@@ -269,6 +269,8 @@ uint32_t heatStatusLine;
 uint32_t humStatusLine;
 
 uint32_t timeStatusLine;
+
+uint32_t scheduleStatusLine;
 
 // Month string
 static const char timeMonthStr[12][3] =
@@ -450,7 +452,7 @@ void Ssf_init(void *sem)
     clientParams.maxStatusLines++;
     clientParams.maxStatusLines++;
     clientParams.maxStatusLines++;
-
+    clientParams.maxStatusLines++;
     /* Open UI for key and LED */
     ssfCuiHndl = CUI_clientOpen(&clientParams);
 
@@ -495,11 +497,13 @@ void Ssf_init(void *sem)
     CUI_statusLineResourceRequest(ssfCuiHndl, "Sensor PER", false, &perStatusLine);
 #endif
     CUI_statusLineResourceRequest(ssfCuiHndl, "Control", false, &controlStatusLine);
-    CUI_statusLineResourceRequest(ssfCuiHndl, "Fan", false, &fanStatusLine);
+    CUI_statusLineResourceRequest(ssfCuiHndl, "Solenoid", false, &solenoidStatusLine);
     CUI_statusLineResourceRequest(ssfCuiHndl, "Light", false, &lightStatusLine);
     CUI_statusLineResourceRequest(ssfCuiHndl, "Heat", false, &heatStatusLine);
     CUI_statusLineResourceRequest(ssfCuiHndl, "Hum", false, &humStatusLine);
     CUI_statusLineResourceRequest(ssfCuiHndl, "Time", false, &timeStatusLine);
+    CUI_statusLineResourceRequest(ssfCuiHndl, "Schedule", false, &scheduleStatusLine);
+
     if((pNV != NULL) && (pNV->readItem != NULL))
     {
         /* Attempt to retrieve reason for the reset */
@@ -1930,26 +1934,28 @@ void Ssf_displayPerStats(Smsgs_msgStatsField_t* pstats)
 }
 #endif /* DISPLAY_PER_STATS */
 
-void Ssf_displayControl(Smsgs_controlfield_t control){
-    CUI_statusLinePrintf(ssfCuiHndl, controlStatusLine, "CO2 SP: %f, Temp SP: %f, Hum SP: %f", control.co2SetPoint, control.tempSetPoint, control.humiditySetPoint);
+void Ssf_displayControl(Control_t control, float co2SetPoint, float tempSetPoint,
+                        float humiditySetPoint){
+    CUI_statusLinePrintf(ssfCuiHndl, controlStatusLine, "CO2: %f, Temp: %f, Hum: %f, CO2 SP: %f, Temp SP: %f, Hum SP: %f",
+                         control.co2, control.temperature, control.humidity, co2SetPoint, tempSetPoint, humiditySetPoint);
 
 }
 
-void Ssf_displayActuator(Sensor_actuator_t* actuators, uint8_t size){
+void Ssf_displayActuator(Actuator_t** actuators, uint8_t size){
     int i =0;
     for(i=0; i < size; i++){
-        switch(actuators[i].type){
+        switch(actuators[i]->type){
             case HUMIDITY:
-                CUI_statusLinePrintf(ssfCuiHndl, humStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                CUI_statusLinePrintf(ssfCuiHndl, humStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i]->dimmable),(actuators[i]->state), actuators[i]->level);
                 break;
             case TEMPERATURE:
-                CUI_statusLinePrintf(ssfCuiHndl, heatStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                CUI_statusLinePrintf(ssfCuiHndl, heatStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i]->dimmable),(actuators[i]->state), actuators[i]->level);
                 break;
             case LIGHT:
-                CUI_statusLinePrintf(ssfCuiHndl, lightStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                CUI_statusLinePrintf(ssfCuiHndl, lightStatusLine, "Dimmable: %d, State: %d, Level: %d", (actuators[i]->dimmable),(actuators[i]->state), actuators[i]->level);
                 break;
             case AIR_QUALITY:
-                CUI_statusLinePrintf(ssfCuiHndl, fanStatusLine, "Dimmable: %d, State: %d, Level: %d",(actuators[i].dimmable),(actuators[i].state), actuators[i].level);
+                CUI_statusLinePrintf(ssfCuiHndl, solenoidStatusLine, "Dimmable: %d, State: %d, Level: %d",(actuators[i]->dimmable),(actuators[i]->state), actuators[i]->level);
                 break;
             default:
                 break;
@@ -1995,14 +2001,14 @@ static char *year2Str(char *pStr, uint16_t year)
   return pStr;
 }
 
-void Ssf_displayTime(){
-    char displayBuf[20];
+void timeString(UTCTime t, char* displayBuf){
+
     char *p = displayBuf;
     UTCTimeStruct time;
     memset(displayBuf, 0x00, 20);
 
     // Get time structure from UTC.
-    UTC_convertUTCTime(&time, UTC_getClock());
+    UTC_convertUTCTime(&time, t);
 
     // Display is in the format:
     // HH:MM MmmDD YYYY
@@ -2019,7 +2025,20 @@ void Ssf_displayTime(){
     *p++ = ' ';
 
     p = year2Str(p, time.year);
+}
 
+void Ssf_displaySchedule(Actuator_t *light){
+    char displayOnBuf[20];
+    char displayOffBuf[20];
+    timeString(UTC_convertUTCSecs(&light->onSchedule), displayOnBuf);
+    timeString(UTC_convertUTCSecs(&light->offSchedule),displayOffBuf);
+
+    CUI_statusLinePrintf(ssfCuiHndl, scheduleStatusLine, "On: %s, Off: %s, Remaining Time: %d", displayOnBuf, displayOffBuf, Clock_getTimeout(light->clkHandle));
+
+}
+void Ssf_displayTime(){
+    char displayBuf[20];
+    timeString(UTC_getClock(),displayBuf);
     CUI_statusLinePrintf(ssfCuiHndl, timeStatusLine, "CurrentTime(s): %d, CurrentDateTime: %s", (uint32_t) UTC_getClock(), displayBuf);
 }
 /**

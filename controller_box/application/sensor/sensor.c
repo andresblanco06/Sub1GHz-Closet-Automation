@@ -1592,14 +1592,13 @@ static void readSensors(void)
     airQuality.co2 = 400;
     airQuality.tvoc = 200;
 
+    setCo2(airQuality.co2);
+
     actuator.totalNumber = TOTAL_ACTUATORS;
     getActuators(act);
     memset(actuator.actuators, 0, sizeof(Sensor_actuator_t) * TOTAL_ACTUATORS);
     memcpy(actuator.actuators, act, sizeof(Sensor_actuator_t) * TOTAL_ACTUATORS);
 
-    Ssf_displayControl(control);
-    Ssf_displayActuator(actuator.actuators, TOTAL_ACTUATORS);
-    Ssf_displayTime();
 #if defined(TEMP_SENSOR)
     /* Read the temp sensor values */
     tempSensor.ambienceTemp = Ssf_readTempSensor();
@@ -1960,6 +1959,7 @@ static void processControlRequest(ApiMac_mcpsDataInd_t *pDataInd)
             pBuf += 4;
             setTemp(Util_buildFloat(pBuf[0], pBuf[1], pBuf[2], pBuf[3]));
             pBuf += 4;
+            setSchedule(pBuf);
 
             stat = Smsgs_statusValues_success;
             collectorAddr.addrMode = pDataInd->srcAddr.addrMode;
@@ -1978,6 +1978,7 @@ static void processControlRequest(ApiMac_mcpsDataInd_t *pDataInd)
             controlRsp.tempSetPoint = getSetTemp();
             controlRsp.humidity = getHum();
             controlRsp.temp = getTemp();
+
         }
 
         /* Send the response message */
