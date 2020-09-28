@@ -55,7 +55,7 @@ GPIO1.pinInstance.$name = "CONFIG_PIN_3";
 GPIO2.mode              = "Output";
 GPIO2.pull              = "Pull Down";
 GPIO2.$name             = "CONFIG_GPIO_SOLENOID";
-GPIO2.gpioPin.$assign   = "boosterpack.24";
+GPIO2.gpioPin.$assign   = "boosterpack.14";
 GPIO2.pinInstance.$name = "CONFIG_PIN_2";
 
 GPIO3.$name             = "CONFIG_GPIO_HEAT";
@@ -67,7 +67,7 @@ GPIO3.pinInstance.$name = "CONFIG_PIN_1";
 GPIO4.$name             = "CONFIG_GPIO_LIGHT";
 GPIO4.mode              = "Output";
 GPIO4.pull              = "Pull Down";
-GPIO4.gpioPin.$assign   = "boosterpack.14";
+GPIO4.gpioPin.$assign   = "boosterpack.24";
 GPIO4.pinInstance.$name = "CONFIG_PIN_0";
 
 GPIO5.$name             = "CONFIG_GPIO_HUM";
@@ -110,7 +110,7 @@ ti154stack.project                            = "sensorOAD";
 ti154stack.lockProject                        = true;
 ti154stack.phyType                            = "phy200kbps";
 ti154stack.reportingInterval                  = 5000;
-ti154stack.pollingInterval                    = 15000;
+ti154stack.pollingInterval                    = 1000;
 ti154stack.aesccmModule.$name                 = "CONFIG_AESCCM_0";
 ti154stack.oadSettings.$name                  = "ti_ti154stack_oad_config_ti154stack_oad_mod0";
 ti154stack.radioConfig.$name                  = "ti_devices_radioconfig_settings_prop0";

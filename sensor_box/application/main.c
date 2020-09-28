@@ -374,14 +374,14 @@ int main(void)
 #endif
 
 #ifndef POWER_MEAS
-    /* Initialize CUI UART */
-    CUI_params_t cuiParams;
-    CUI_paramsInit(&cuiParams);
-
-    // One-time initialization of the CUI
-
-    // All later CUI_* functions will be ignored if this isn't called
-    CUI_init(&cuiParams);
+//    /* Initialize CUI UART */
+//    CUI_params_t cuiParams;
+//    CUI_paramsInit(&cuiParams);
+//
+//    // One-time initialization of the CUI
+//
+//    // All later CUI_* functions will be ignored if this isn't called
+//    CUI_init(&cuiParams);
 #endif
 
 #ifdef OSAL_PORT2TIRTOS

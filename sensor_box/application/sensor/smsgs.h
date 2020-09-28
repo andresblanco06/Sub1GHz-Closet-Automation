@@ -280,6 +280,7 @@ typedef enum
     Smsgs_dataFields_hallEffectSensor = 0x0020,
     /*! Accelerometer Sensor */
     Smsgs_dataFields_accelSensor = 0x0040,
+    Smsgs_dataFields_batterySensor = 0x0080,
 #endif /* LPSTK */
 #ifdef CLOSET
     Smsgs_dataFields_airQuality = 0x2000,
@@ -472,6 +473,14 @@ typedef struct _Smsgs_airQualityfield_t
     /*! tvoc value. */
     uint16_t tvoc;
 } Smsgs_airQualityfield_t;
+/*!
+ airQuality Sensor Field
+ */
+typedef struct _Smsgs_batteryfield_t
+{
+    /*! co2 value. */
+    uint32_t voltage;
+} Smsgs_batteryfield_t;
 
 typedef struct _Smsgs_blesensorfield_t
 {
@@ -643,6 +652,7 @@ typedef struct _Smsgs_sensormsg_t
     Smsgs_accelSensorField_t accelerometerSensor;
 #endif /* LPSTK */
     Smsgs_airQualityfield_t airQualitySensor;
+    Smsgs_batteryfield_t batterySensor;
     /*!
      BLE Sensor field - valid only if Smsgs_dataFields_bleSensorField_t
      is set in frameControl.

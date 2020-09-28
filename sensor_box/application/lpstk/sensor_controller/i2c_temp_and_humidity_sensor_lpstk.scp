@@ -36,6 +36,330 @@ See the header in the application source file ("main.c" or similar) for further 
     <pattr name="RTC tick interval (16.16 format)">2000</pattr>
     <pattr name="Run-time logging UART RX pin"></pattr>
     <pattr name="Run-time logging UART TX pin"></pattr>
+    <task name="I2C Light Sensor">
+        <desc><![CDATA[Samples the OPT3001 light sensor on the LaunchPad SensorTag Kit (LPSTK). This light sensor integrates over longer periods of time to minimize noise from 50 and 60 Hz AC and pulse width modulated light sources.
+
+Each iteration of the I2C Light Sensor task:
+- Runs the Execution Code: The light sensor configured for 100 ms integration, and a single measurement is started. The timer based event trigger is enabled (100 ms + margin).
+- Runs the Event Handler Code: The light sensor value is read and processed.
+
+The light sensor output is converted from floating-point (12-bit mantissa, 4-bit exponent) to fixed-point (16-bit). The system CPU is alerted if the value is above or below configurable thresholds.
+
+Note the following for task testing, task debugging, and run-time logging:
+- Use a LaunchPad to communicate with the target. Use the cables supplied with the LPSTK to connect the JTAG and UART interfaces.
+- The OPT3001 implements a timeout for I2C accesses, and will NACK I2C TX operations if a task debugging session halts execution in the middle of an I2C transaction.]]></desc>
+        <tattr name="ALS_CFG_ONE_SHOT" desc="OPT3001 configuration triggering 100 ms single conversion" type="expr_hex" content="const" scope="task" min="0" max="65535">0xC210</tattr>
+        <tattr name="ALS_CFG_RESET" desc="OPT3001 configuration at reset (shutdown)" type="expr_hex" content="const" scope="task" min="0" max="65535">0xC810</tattr>
+        <tattr name="ALS_I2C_ADDR" desc="OPT3001 I2C address //88" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0088</tattr>
+        <tattr name="ALS_REG_CFG" desc="OPT3001 configuration register" type="expr" content="const" scope="task" min="0" max="65535">1</tattr>
+        <tattr name="ALS_REG_RESULT" desc="OPT3001 result register" type="expr" content="const" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="cfg.highThreshold" desc="High alert threshold" type="expr" content="struct" scope="task" min="0" max="65535">65535</tattr>
+        <tattr name="cfg.lowThreshold" desc="Low alert threshold" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.value" desc="Light sensor output value" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="state.state" type="expr" content="struct" scope="task" min="0" max="65535">0x0000</tattr>
+        <resource_ref name="ADC" enabled="0"/>
+        <resource_ref name="AON Domain Functionality" enabled="0"/>
+        <resource_ref name="Accumulator-Based Math" enabled="0"/>
+        <resource_ref name="Analog Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Analog Open-Source Pins" enabled="0"/>
+        <resource_ref name="Analog Pins" enabled="0"/>
+        <resource_ref name="COMPA" enabled="0"/>
+        <resource_ref name="COMPA Event Trigger" enabled="0"/>
+        <resource_ref name="COMPB" enabled="0"/>
+        <resource_ref name="COMPB Event Trigger" enabled="0"/>
+        <resource_ref name="Delay Insertion" enabled="0"/>
+        <resource_ref name="Differential Output Pins" enabled="0"/>
+        <resource_ref name="Digital Input Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Source Pins" enabled="0"/>
+        <resource_ref name="Digital Output Pins" enabled="0">
+            <io_usage name="RLED" label="Red LED">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO6</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+            <io_usage name="GLED" label="Green LED">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO7</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+            <io_usage name="BLED" label="Blue LED">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO21</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Dynamic Power Control" enabled="0"/>
+        <resource_ref name="GPIO Event Trigger" enabled="0"/>
+        <resource_ref name="I2C Master" enabled="1">
+            <rattr name="SCL frequency">0</rattr>
+            <rattr name="SCL stretch timeout">10</rattr>
+            <io_usage>
+                <uattr name="SCL pin/0000">DIO4</uattr>
+                <uattr name="SDA pin/0000">DIO5</uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="ISRC" enabled="0"/>
+        <resource_ref name="LCD Controller" enabled="0">
+            <rattr name="Waveform state count">8</rattr>
+            <io_usage>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Pin count">20</uattr>
+                <uattr name="Pin/0000"></uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Math and Logic" enabled="0"/>
+        <resource_ref name="Multi-Buffered Output Data Exchange" enabled="0">
+            <rattr name="Buffer count">2</rattr>
+            <rattr name="Indicate overflow at buffer check">1</rattr>
+            <rattr name="Indicate overflow at buffer switch">0</rattr>
+            <rattr name="Prevent overflow at buffer switch">1</rattr>
+        </resource_ref>
+        <resource_ref name="Peripheral Sharing" enabled="0"/>
+        <resource_ref name="Pulse Counter" enabled="0"/>
+        <resource_ref name="RTC Multi-Event Capture" enabled="0"/>
+        <resource_ref name="RTC-Based Execution Scheduling" enabled="0"/>
+        <resource_ref name="Reference DAC" enabled="0"/>
+        <resource_ref name="Run-Time Logging" enabled="0"/>
+        <resource_ref name="SPI Chip Select" enabled="0"/>
+        <resource_ref name="SPI Data Transfer" enabled="0">
+            <rattr name="Bit rate">0</rattr>
+            <rattr name="MISO configuration when inactive">-1</rattr>
+            <rattr name="MOSI configuration on initialization">0</rattr>
+            <rattr name="MOSI configuration on uninitialization">0</rattr>
+            <rattr name="SCLK configuration on initialization">0</rattr>
+            <rattr name="SCLK configuration on uninitialization">0</rattr>
+            <io_usage>
+                <uattr name="MISO pin/0000"></uattr>
+                <uattr name="MOSI pin/0000"></uattr>
+                <uattr name="SCLK pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Signal Observation" enabled="0"/>
+        <resource_ref name="System CPU Alert" enabled="1"/>
+        <resource_ref name="System Event Trigger" enabled="0"/>
+        <resource_ref name="TDC" enabled="0"/>
+        <resource_ref name="Timer 0" enabled="0"/>
+        <resource_ref name="Timer 0 Event Trigger" enabled="0"/>
+        <resource_ref name="Timer 1" enabled="0"/>
+        <resource_ref name="Timer 1 Event Trigger" enabled="1"/>
+        <resource_ref name="Timer 2" enabled="0"/>
+        <resource_ref name="Timer 2 Event Trigger" enabled="0"/>
+        <resource_ref name="UART Emulator" enabled="0">
+            <rattr name="RX buffer size">64</rattr>
+            <rattr name="Required idle period before enabling RX">11</rattr>
+            <rattr name="TX buffer size">64</rattr>
+            <io_usage>
+                <uattr name="RX pin/0000"></uattr>
+                <uattr name="TX pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <sccode name="event0" init_power_mode="2"><![CDATA[// Cancel both event triggers
+evhCancelTrigger(0);
+
+if(state.state == 0){
+    // Configure and start the next measurement
+    i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_ONE_SHOT);
+    state.state = 1;
+
+    // Read the result after ~100 milliseconds + a 20% margin
+    evhSetupTimer1Trigger(0, 120, 2);
+}else{
+    // If a measurement was successfully started during the last execution ...
+    if (state.i2cStatus == 0x0000) {
+
+        // Select the result register
+        U16 result;
+        i2cDeviceReadReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_RESULT; result);
+
+        // If successful ...
+        if (state.i2cStatus == 0x0000) {
+
+            // Convert the result (4-bit exponent + 12-bit mantissa) into 16-bit fixed-point
+            //        U16 exp = result >> 12;
+            //        U16 mant = result << 4;
+            // The exponent is in range 0 to 11
+            //        U16 value = mant >> (11 - exp);
+            output.value = result;
+
+            // Notify the application with the result is below the low threshold or above the high threshold
+            //        if (value < cfg.lowThreshold) {
+            //            fwGenAlertInterrupt();
+            //        }
+            //        if (value > cfg.highThreshold) {
+            //            fwGenAlertInterrupt();
+            //        }
+        } else {
+            // We're using a mix of low-level and high-level I2C procedures in this example, so
+            // clear errors in case the Termination Code runs next
+            state.i2cStatus = 0x0000;
+        }
+    }else {
+        // We're using a mix of low-level and high-level I2C procedures in this example, so
+        // clear errors in case the Termination Code runs next
+        state.i2cStatus = 0x0000;
+    }
+
+    // Configure and start the next measurement
+    i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_ONE_SHOT);
+
+    state.state = 0;
+    // Read the result after ~1000 milliseconds + a 20% margin
+    evhSetupTimer1Trigger(0, 5000, 2);
+
+}]]></sccode>
+        <sccode name="event1" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="event2" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="event3" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="execute" init_power_mode="2"><![CDATA[]]></sccode>
+        <sccode name="initialize" init_power_mode="2"><![CDATA[// Configure and start the next measurement
+i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_ONE_SHOT);
+
+// Read the result after ~100 milliseconds + a 20% margin
+evhSetupTimer1Trigger(0, 120, 2);
+
+state.state = 1;]]></sccode>
+        <sccode name="terminate" init_power_mode="2"><![CDATA[// Shut down the light sensor
+i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_RESET);
+
+// Cancel the potentially active event trigger
+evhCancelTrigger(0);]]></sccode>
+        <event_trigger active_count="1">0,1,2,3</event_trigger>
+        <tt_iter>run_execute,wait_100ms,run_event0</tt_iter>
+        <tt_struct>output.value,state.i2cStatus</tt_struct>
+        <rtl_struct></rtl_struct>
+        <rtl_task_sel en="0" struct_log_list=""/>
+    </task>
     <task name="I2C Temp and Humidity Sensor">
         <desc><![CDATA[The task configures the HDC2080 sensor for autonomous temperature and humidity measurements at 1 Hz, with interrupt on data ready.
 
@@ -378,556 +702,5 @@ evhCancelTrigger(1);]]></sccode>
         <tt_struct>output.hum,output.temp</tt_struct>
         <rtl_struct>output.hum,output.temp</rtl_struct>
         <rtl_task_sel en="0" struct_log_list="output"/>
-    </task>
-    <task name="SGP30 Gas Sensor">
-        <desc><![CDATA[]]></desc>
-        <tattr name="BYTE_IN_BITS" type="expr" content="const" scope="task" min="0" max="65535">8</tattr>
-        <tattr name="SGP30_I2C_ADDRESS" desc="SGP30_I2C_ADDRESS //B0" type="expr_hex" content="const" scope="task" min="0" max="65535">0x58</tattr>
-        <tattr name="SGP30_I2C_ADDRESS_R" type="expr_hex" content="const" scope="task" min="0" max="65535">0xB0</tattr>
-        <tattr name="SGP30_I2C_ADDRESS_W" type="expr_hex" content="const" scope="task" min="0" max="65535">0xB1</tattr>
-        <tattr name="SGP30_IAQ_CMD" desc="init command" type="expr_hex" content="const" scope="task" min="0" max="65535">0x20</tattr>
-        <tattr name="SGP30_IAQ_INIT" type="expr_hex" content="const" scope="task" min="0" max="65535">0x03</tattr>
-        <tattr name="SGP30_IAQ_SET_ABSOLUTE_HUMIDITY" type="expr_hex" content="const" scope="task" min="0" max="65535">0x61</tattr>
-        <tattr name="SGP30_MEASURE_IAQ" type="expr_hex" content="const" scope="task" min="0" max="65535">0x08</tattr>
-        <tattr name="SGP30_STATE_HUMIDITY" type="expr_hex" content="const" scope="task" min="0" max="65535">0x01</tattr>
-        <tattr name="SGP30_STATE_INIT" type="expr_hex" content="const" scope="task" min="0" max="65535">0</tattr>
-        <tattr name="SGP30_STATE_MEASURE" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0010</tattr>
-        <tattr name="SGP30_STATE_READ" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0100</tattr>
-        <tattr name="input.absoluteHumidity" desc="absolute humidity" type="expr_hex" content="struct" scope="task" min="0" max="65535">0xFF00</tattr>
-        <tattr name="input.crc" type="expr_hex" content="struct" scope="task" min="0" max="65535">0xFF</tattr>
-        <tattr name="output.co2" desc="value from the sensor" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
-        <tattr name="output.tvoc" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
-        <tattr name="state.sgp30state" type="expr_hex" content="struct" scope="task" min="0" max="65535">SGP30_STATE_INIT</tattr>
-        <resource_ref name="ADC" enabled="0"/>
-        <resource_ref name="AON Domain Functionality" enabled="0"/>
-        <resource_ref name="Accumulator-Based Math" enabled="0"/>
-        <resource_ref name="Analog Open-Drain Pins" enabled="0"/>
-        <resource_ref name="Analog Open-Source Pins" enabled="0"/>
-        <resource_ref name="Analog Pins" enabled="0"/>
-        <resource_ref name="COMPA" enabled="0"/>
-        <resource_ref name="COMPA Event Trigger" enabled="0"/>
-        <resource_ref name="COMPB" enabled="0"/>
-        <resource_ref name="COMPB Event Trigger" enabled="0"/>
-        <resource_ref name="Delay Insertion" enabled="1"/>
-        <resource_ref name="Differential Output Pins" enabled="0"/>
-        <resource_ref name="Digital Input Pins" enabled="0"/>
-        <resource_ref name="Digital Open-Drain Pins" enabled="0"/>
-        <resource_ref name="Digital Open-Source Pins" enabled="0"/>
-        <resource_ref name="Digital Output Pins" enabled="0"/>
-        <resource_ref name="Dynamic Power Control" enabled="0"/>
-        <resource_ref name="GPIO Event Trigger" enabled="0"/>
-        <resource_ref name="I2C Master" enabled="1">
-            <rattr name="SCL frequency">0</rattr>
-            <rattr name="SCL stretch timeout">10</rattr>
-            <io_usage>
-                <uattr name="SCL pin/0000">DIO4</uattr>
-                <uattr name="SDA pin/0000">DIO5</uattr>
-            </io_usage>
-        </resource_ref>
-        <resource_ref name="ISRC" enabled="0"/>
-        <resource_ref name="LCD Controller" enabled="0">
-            <rattr name="Waveform state count">8</rattr>
-            <io_usage>
-                <uattr name="Output drive strength">0</uattr>
-                <uattr name="Pin count">20</uattr>
-                <uattr name="Pin/0000"></uattr>
-                <uattr name="Pin/0001"></uattr>
-                <uattr name="Pin/0002"></uattr>
-                <uattr name="Pin/0003"></uattr>
-                <uattr name="Pin/0004"></uattr>
-                <uattr name="Pin/0005"></uattr>
-                <uattr name="Pin/0006"></uattr>
-                <uattr name="Pin/0007"></uattr>
-                <uattr name="Pin/0008"></uattr>
-                <uattr name="Pin/0009"></uattr>
-                <uattr name="Pin/0010"></uattr>
-                <uattr name="Pin/0011"></uattr>
-                <uattr name="Pin/0012"></uattr>
-                <uattr name="Pin/0013"></uattr>
-                <uattr name="Pin/0014"></uattr>
-                <uattr name="Pin/0015"></uattr>
-                <uattr name="Pin/0016"></uattr>
-                <uattr name="Pin/0017"></uattr>
-                <uattr name="Pin/0018"></uattr>
-                <uattr name="Pin/0019"></uattr>
-                <uattr name="Pin/0020"></uattr>
-                <uattr name="Pin/0021"></uattr>
-                <uattr name="Pin/0022"></uattr>
-                <uattr name="Pin/0023"></uattr>
-                <uattr name="Pin/0024"></uattr>
-                <uattr name="Pin/0025"></uattr>
-                <uattr name="Pin/0026"></uattr>
-                <uattr name="Pin/0027"></uattr>
-                <uattr name="Pin/0028"></uattr>
-                <uattr name="Pin/0029"></uattr>
-                <uattr name="Pin/0030"></uattr>
-                <uattr name="Pin/0031"></uattr>
-            </io_usage>
-        </resource_ref>
-        <resource_ref name="Math and Logic" enabled="0"/>
-        <resource_ref name="Multi-Buffered Output Data Exchange" enabled="0">
-            <rattr name="Buffer count">2</rattr>
-            <rattr name="Indicate overflow at buffer check">1</rattr>
-            <rattr name="Indicate overflow at buffer switch">0</rattr>
-            <rattr name="Prevent overflow at buffer switch">1</rattr>
-        </resource_ref>
-        <resource_ref name="Peripheral Sharing" enabled="0"/>
-        <resource_ref name="Pulse Counter" enabled="0"/>
-        <resource_ref name="RTC Multi-Event Capture" enabled="0"/>
-        <resource_ref name="RTC-Based Execution Scheduling" enabled="1"/>
-        <resource_ref name="Reference DAC" enabled="0"/>
-        <resource_ref name="Run-Time Logging" enabled="0"/>
-        <resource_ref name="SPI Chip Select" enabled="0"/>
-        <resource_ref name="SPI Data Transfer" enabled="0">
-            <rattr name="Bit rate">0</rattr>
-            <rattr name="MISO configuration when inactive">-1</rattr>
-            <rattr name="MOSI configuration on initialization">0</rattr>
-            <rattr name="MOSI configuration on uninitialization">0</rattr>
-            <rattr name="SCLK configuration on initialization">0</rattr>
-            <rattr name="SCLK configuration on uninitialization">0</rattr>
-            <io_usage>
-                <uattr name="MISO pin/0000"></uattr>
-                <uattr name="MOSI pin/0000"></uattr>
-                <uattr name="SCLK pin/0000"></uattr>
-            </io_usage>
-        </resource_ref>
-        <resource_ref name="Signal Observation" enabled="0"/>
-        <resource_ref name="System CPU Alert" enabled="0"/>
-        <resource_ref name="System Event Trigger" enabled="0"/>
-        <resource_ref name="TDC" enabled="0"/>
-        <resource_ref name="Timer 0" enabled="0"/>
-        <resource_ref name="Timer 0 Event Trigger" enabled="0"/>
-        <resource_ref name="Timer 1" enabled="0"/>
-        <resource_ref name="Timer 1 Event Trigger" enabled="0"/>
-        <resource_ref name="Timer 2" enabled="0"/>
-        <resource_ref name="Timer 2 Event Trigger" enabled="0"/>
-        <resource_ref name="UART Emulator" enabled="0">
-            <rattr name="RX buffer size">64</rattr>
-            <rattr name="Required idle period before enabling RX">11</rattr>
-            <rattr name="TX buffer size">64</rattr>
-            <io_usage>
-                <uattr name="RX pin/0000"></uattr>
-                <uattr name="TX pin/0000"></uattr>
-            </io_usage>
-        </resource_ref>
-        <sccode name="event0" init_power_mode="0"><![CDATA[]]></sccode>
-        <sccode name="event1" init_power_mode="0"><![CDATA[]]></sccode>
-        <sccode name="event2" init_power_mode="0"><![CDATA[]]></sccode>
-        <sccode name="event3" init_power_mode="0"><![CDATA[]]></sccode>
-        <sccode name="execute" init_power_mode="2"><![CDATA[U16 resultH = 0;
-U16 resultL = 0;
-U16 resulttvocH = 0;
-U16 resulttvocL = 0;
-U16 dummy = 0;
-U16 crc = 0xFF;
-if (state.i2cStatus == 0x0000) {
-    // If a measurement was successfully started during the last execution ...
-    if (state.sgp30state == SGP30_STATE_INIT) {
-        //i2cDeviceWriteReg8(SGP30_I2C_ADDRESS, SGP30_IAQ_CMD, SGP30_IAQ_INIT);
-
-        //    // Configure and start the next measurement
-        i2cStart();
-        i2cTx((SGP30_I2C_ADDRESS << 1) | I2C_OP_WRITE);
-        i2cTx(SGP30_IAQ_CMD);
-        i2cTx(SGP30_IAQ_INIT);
-        i2cStop();
-
-        state.sgp30state = SGP30_STATE_HUMIDITY;
-
-        fwScheduleTask(1000);
-    } else if (state.sgp30state == SGP30_STATE_HUMIDITY) {
-        resultH = input.absoluteHumidity >> 8;
-        resultL = input.absoluteHumidity & 0xFF;
-        crc = input.crc & 0xFF;
-
-        //i2cDeviceWriteReg8(SGP30_I2C_ADDRESS, SGP30_IAQ_CMD, SGP30_IAQ_SET_ABSOLUTE_HUMIDITY);
-
-        i2cStart();
-        i2cTx((SGP30_I2C_ADDRESS << 1) | I2C_OP_WRITE);
-        i2cTx(SGP30_IAQ_CMD);
-        i2cTx(SGP30_IAQ_SET_ABSOLUTE_HUMIDITY);
-        i2cTx(resultH);
-        i2cTx(resultL);
-        i2cTx(crc);
-        i2cStop();
-
-        state.sgp30state = SGP30_STATE_MEASURE;
-
-        fwScheduleTask(10);
-    } else if (state.sgp30state == SGP30_STATE_MEASURE) {
-        //i2cDeviceWriteReg8(SGP30_I2C_ADDRESS, SGP30_IAQ_CMD, SGP30_MEASURE_IAQ);
-        i2cStart();
-        i2cTx((SGP30_I2C_ADDRESS << 1) | I2C_OP_WRITE);
-        i2cTx(SGP30_IAQ_CMD);
-        i2cTx(SGP30_MEASURE_IAQ);
-
-        state.sgp30state = SGP30_STATE_READ;
-
-        fwScheduleTask(15);
-    } else if (state.sgp30state == SGP30_STATE_READ) {
-
-        i2cRepeatedStart();
-        i2cTx((SGP30_I2C_ADDRESS << 1) | I2C_OP_READ);
-        i2cRxAck(resultH);
-        i2cRxAck(resultL);
-        i2cRxAck(dummy);
-        i2cRxAck(resulttvocH);
-        i2cRxAck(resulttvocL);
-        i2cRxAck(dummy);
-        i2cStop();
-
-        output.co2 = (resultH << 8) | (resultL & 0xFF);
-        output.tvoc = (resulttvocH << 8) | (resulttvocL & 0xFF);
-
-        state.sgp30state = SGP30_STATE_HUMIDITY;
-
-        fwScheduleTask(980);
-    } else {
-        state.sgp30state = SGP30_STATE_HUMIDITY;
-        // We're using a mix of low-level and high-level I2C procedures in this example, so
-        // clear errors in case the Termination Code runs next
-        state.i2cStatus = 0x0000;
-        fwScheduleTask(1000);
-    }
-} else {
-    state.sgp30state = SGP30_STATE_INIT;
-    // We're using a mix of low-level and high-level I2C procedures in this example, so
-    // clear errors in case the Termination Code runs next
-    state.i2cStatus = 0x0000;
-    fwScheduleTask(1000);
-}]]></sccode>
-        <sccode name="initialize" init_power_mode="2"><![CDATA[// Schedule the first execution
-fwScheduleTask(1000);]]></sccode>
-        <sccode name="terminate" init_power_mode="2"><![CDATA[// Shut down the light sensor
-i2cStop();]]></sccode>
-        <event_trigger active_count="1">0,1,2,3</event_trigger>
-        <tt_iter></tt_iter>
-        <tt_struct></tt_struct>
-        <rtl_struct>output.co2,state.i2cStatus,state.sgp30state</rtl_struct>
-        <rtl_task_sel en="0" struct_log_list="output,state"/>
-    </task>
-    <task name="I2C Light Sensor">
-        <desc><![CDATA[Samples the OPT3001 light sensor on the LaunchPad SensorTag Kit (LPSTK). This light sensor integrates over longer periods of time to minimize noise from 50 and 60 Hz AC and pulse width modulated light sources.
-
-Each iteration of the I2C Light Sensor task:
-- Runs the Execution Code: The light sensor configured for 100 ms integration, and a single measurement is started. The timer based event trigger is enabled (100 ms + margin).
-- Runs the Event Handler Code: The light sensor value is read and processed.
-
-The light sensor output is converted from floating-point (12-bit mantissa, 4-bit exponent) to fixed-point (16-bit). The system CPU is alerted if the value is above or below configurable thresholds.
-
-Note the following for task testing, task debugging, and run-time logging:
-- Use a LaunchPad to communicate with the target. Use the cables supplied with the LPSTK to connect the JTAG and UART interfaces.
-- The OPT3001 implements a timeout for I2C accesses, and will NACK I2C TX operations if a task debugging session halts execution in the middle of an I2C transaction.]]></desc>
-        <tattr name="ALS_CFG_ONE_SHOT" desc="OPT3001 configuration triggering 100 ms single conversion" type="expr_hex" content="const" scope="task" min="0" max="65535">0xC210</tattr>
-        <tattr name="ALS_CFG_RESET" desc="OPT3001 configuration at reset (shutdown)" type="expr_hex" content="const" scope="task" min="0" max="65535">0xC810</tattr>
-        <tattr name="ALS_I2C_ADDR" desc="OPT3001 I2C address //88" type="expr_hex" content="const" scope="task" min="0" max="65535">0x0088</tattr>
-        <tattr name="ALS_REG_CFG" desc="OPT3001 configuration register" type="expr" content="const" scope="task" min="0" max="65535">1</tattr>
-        <tattr name="ALS_REG_RESULT" desc="OPT3001 result register" type="expr" content="const" scope="task" min="0" max="65535">0</tattr>
-        <tattr name="cfg.highThreshold" desc="High alert threshold" type="expr" content="struct" scope="task" min="0" max="65535">65535</tattr>
-        <tattr name="cfg.lowThreshold" desc="Low alert threshold" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
-        <tattr name="output.value" desc="Light sensor output value" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
-        <tattr name="state.state" type="expr" content="struct" scope="task" min="0" max="65535">0x0000</tattr>
-        <resource_ref name="ADC" enabled="0"/>
-        <resource_ref name="AON Domain Functionality" enabled="0"/>
-        <resource_ref name="Accumulator-Based Math" enabled="0"/>
-        <resource_ref name="Analog Open-Drain Pins" enabled="0"/>
-        <resource_ref name="Analog Open-Source Pins" enabled="0"/>
-        <resource_ref name="Analog Pins" enabled="0"/>
-        <resource_ref name="COMPA" enabled="0"/>
-        <resource_ref name="COMPA Event Trigger" enabled="0"/>
-        <resource_ref name="COMPB" enabled="0"/>
-        <resource_ref name="COMPB Event Trigger" enabled="0"/>
-        <resource_ref name="Delay Insertion" enabled="0"/>
-        <resource_ref name="Differential Output Pins" enabled="0"/>
-        <resource_ref name="Digital Input Pins" enabled="0"/>
-        <resource_ref name="Digital Open-Drain Pins" enabled="0"/>
-        <resource_ref name="Digital Open-Source Pins" enabled="0"/>
-        <resource_ref name="Digital Output Pins" enabled="0">
-            <io_usage name="RLED" label="Red LED">
-                <uattr name="Configuration on uninitialization">-1</uattr>
-                <uattr name="Output drive strength">0</uattr>
-                <uattr name="Output value on initialization">0</uattr>
-                <uattr name="Pin count">0</uattr>
-                <uattr name="Pin/0000">DIO6</uattr>
-                <uattr name="Pin/0001"></uattr>
-                <uattr name="Pin/0002"></uattr>
-                <uattr name="Pin/0003"></uattr>
-                <uattr name="Pin/0004"></uattr>
-                <uattr name="Pin/0005"></uattr>
-                <uattr name="Pin/0006"></uattr>
-                <uattr name="Pin/0007"></uattr>
-                <uattr name="Pin/0008"></uattr>
-                <uattr name="Pin/0009"></uattr>
-                <uattr name="Pin/0010"></uattr>
-                <uattr name="Pin/0011"></uattr>
-                <uattr name="Pin/0012"></uattr>
-                <uattr name="Pin/0013"></uattr>
-                <uattr name="Pin/0014"></uattr>
-                <uattr name="Pin/0015"></uattr>
-                <uattr name="Pin/0016"></uattr>
-                <uattr name="Pin/0017"></uattr>
-                <uattr name="Pin/0018"></uattr>
-                <uattr name="Pin/0019"></uattr>
-                <uattr name="Pin/0020"></uattr>
-                <uattr name="Pin/0021"></uattr>
-                <uattr name="Pin/0022"></uattr>
-                <uattr name="Pin/0023"></uattr>
-                <uattr name="Pin/0024"></uattr>
-                <uattr name="Pin/0025"></uattr>
-                <uattr name="Pin/0026"></uattr>
-                <uattr name="Pin/0027"></uattr>
-                <uattr name="Pin/0028"></uattr>
-                <uattr name="Pin/0029"></uattr>
-                <uattr name="Pin/0030"></uattr>
-                <uattr name="Pin/0031"></uattr>
-            </io_usage>
-            <io_usage name="GLED" label="Green LED">
-                <uattr name="Configuration on uninitialization">-1</uattr>
-                <uattr name="Output drive strength">0</uattr>
-                <uattr name="Output value on initialization">0</uattr>
-                <uattr name="Pin count">0</uattr>
-                <uattr name="Pin/0000">DIO7</uattr>
-                <uattr name="Pin/0001"></uattr>
-                <uattr name="Pin/0002"></uattr>
-                <uattr name="Pin/0003"></uattr>
-                <uattr name="Pin/0004"></uattr>
-                <uattr name="Pin/0005"></uattr>
-                <uattr name="Pin/0006"></uattr>
-                <uattr name="Pin/0007"></uattr>
-                <uattr name="Pin/0008"></uattr>
-                <uattr name="Pin/0009"></uattr>
-                <uattr name="Pin/0010"></uattr>
-                <uattr name="Pin/0011"></uattr>
-                <uattr name="Pin/0012"></uattr>
-                <uattr name="Pin/0013"></uattr>
-                <uattr name="Pin/0014"></uattr>
-                <uattr name="Pin/0015"></uattr>
-                <uattr name="Pin/0016"></uattr>
-                <uattr name="Pin/0017"></uattr>
-                <uattr name="Pin/0018"></uattr>
-                <uattr name="Pin/0019"></uattr>
-                <uattr name="Pin/0020"></uattr>
-                <uattr name="Pin/0021"></uattr>
-                <uattr name="Pin/0022"></uattr>
-                <uattr name="Pin/0023"></uattr>
-                <uattr name="Pin/0024"></uattr>
-                <uattr name="Pin/0025"></uattr>
-                <uattr name="Pin/0026"></uattr>
-                <uattr name="Pin/0027"></uattr>
-                <uattr name="Pin/0028"></uattr>
-                <uattr name="Pin/0029"></uattr>
-                <uattr name="Pin/0030"></uattr>
-                <uattr name="Pin/0031"></uattr>
-            </io_usage>
-            <io_usage name="BLED" label="Blue LED">
-                <uattr name="Configuration on uninitialization">-1</uattr>
-                <uattr name="Output drive strength">0</uattr>
-                <uattr name="Output value on initialization">0</uattr>
-                <uattr name="Pin count">0</uattr>
-                <uattr name="Pin/0000">DIO21</uattr>
-                <uattr name="Pin/0001"></uattr>
-                <uattr name="Pin/0002"></uattr>
-                <uattr name="Pin/0003"></uattr>
-                <uattr name="Pin/0004"></uattr>
-                <uattr name="Pin/0005"></uattr>
-                <uattr name="Pin/0006"></uattr>
-                <uattr name="Pin/0007"></uattr>
-                <uattr name="Pin/0008"></uattr>
-                <uattr name="Pin/0009"></uattr>
-                <uattr name="Pin/0010"></uattr>
-                <uattr name="Pin/0011"></uattr>
-                <uattr name="Pin/0012"></uattr>
-                <uattr name="Pin/0013"></uattr>
-                <uattr name="Pin/0014"></uattr>
-                <uattr name="Pin/0015"></uattr>
-                <uattr name="Pin/0016"></uattr>
-                <uattr name="Pin/0017"></uattr>
-                <uattr name="Pin/0018"></uattr>
-                <uattr name="Pin/0019"></uattr>
-                <uattr name="Pin/0020"></uattr>
-                <uattr name="Pin/0021"></uattr>
-                <uattr name="Pin/0022"></uattr>
-                <uattr name="Pin/0023"></uattr>
-                <uattr name="Pin/0024"></uattr>
-                <uattr name="Pin/0025"></uattr>
-                <uattr name="Pin/0026"></uattr>
-                <uattr name="Pin/0027"></uattr>
-                <uattr name="Pin/0028"></uattr>
-                <uattr name="Pin/0029"></uattr>
-                <uattr name="Pin/0030"></uattr>
-                <uattr name="Pin/0031"></uattr>
-            </io_usage>
-        </resource_ref>
-        <resource_ref name="Dynamic Power Control" enabled="0"/>
-        <resource_ref name="GPIO Event Trigger" enabled="0"/>
-        <resource_ref name="I2C Master" enabled="1">
-            <rattr name="SCL frequency">0</rattr>
-            <rattr name="SCL stretch timeout">10</rattr>
-            <io_usage>
-                <uattr name="SCL pin/0000">DIO4</uattr>
-                <uattr name="SDA pin/0000">DIO5</uattr>
-            </io_usage>
-        </resource_ref>
-        <resource_ref name="ISRC" enabled="0"/>
-        <resource_ref name="LCD Controller" enabled="0">
-            <rattr name="Waveform state count">8</rattr>
-            <io_usage>
-                <uattr name="Output drive strength">0</uattr>
-                <uattr name="Pin count">20</uattr>
-                <uattr name="Pin/0000"></uattr>
-                <uattr name="Pin/0001"></uattr>
-                <uattr name="Pin/0002"></uattr>
-                <uattr name="Pin/0003"></uattr>
-                <uattr name="Pin/0004"></uattr>
-                <uattr name="Pin/0005"></uattr>
-                <uattr name="Pin/0006"></uattr>
-                <uattr name="Pin/0007"></uattr>
-                <uattr name="Pin/0008"></uattr>
-                <uattr name="Pin/0009"></uattr>
-                <uattr name="Pin/0010"></uattr>
-                <uattr name="Pin/0011"></uattr>
-                <uattr name="Pin/0012"></uattr>
-                <uattr name="Pin/0013"></uattr>
-                <uattr name="Pin/0014"></uattr>
-                <uattr name="Pin/0015"></uattr>
-                <uattr name="Pin/0016"></uattr>
-                <uattr name="Pin/0017"></uattr>
-                <uattr name="Pin/0018"></uattr>
-                <uattr name="Pin/0019"></uattr>
-                <uattr name="Pin/0020"></uattr>
-                <uattr name="Pin/0021"></uattr>
-                <uattr name="Pin/0022"></uattr>
-                <uattr name="Pin/0023"></uattr>
-                <uattr name="Pin/0024"></uattr>
-                <uattr name="Pin/0025"></uattr>
-                <uattr name="Pin/0026"></uattr>
-                <uattr name="Pin/0027"></uattr>
-                <uattr name="Pin/0028"></uattr>
-                <uattr name="Pin/0029"></uattr>
-                <uattr name="Pin/0030"></uattr>
-                <uattr name="Pin/0031"></uattr>
-            </io_usage>
-        </resource_ref>
-        <resource_ref name="Math and Logic" enabled="0"/>
-        <resource_ref name="Multi-Buffered Output Data Exchange" enabled="0">
-            <rattr name="Buffer count">2</rattr>
-            <rattr name="Indicate overflow at buffer check">1</rattr>
-            <rattr name="Indicate overflow at buffer switch">0</rattr>
-            <rattr name="Prevent overflow at buffer switch">1</rattr>
-        </resource_ref>
-        <resource_ref name="Peripheral Sharing" enabled="0"/>
-        <resource_ref name="Pulse Counter" enabled="0"/>
-        <resource_ref name="RTC Multi-Event Capture" enabled="0"/>
-        <resource_ref name="RTC-Based Execution Scheduling" enabled="0"/>
-        <resource_ref name="Reference DAC" enabled="0"/>
-        <resource_ref name="Run-Time Logging" enabled="0"/>
-        <resource_ref name="SPI Chip Select" enabled="0"/>
-        <resource_ref name="SPI Data Transfer" enabled="0">
-            <rattr name="Bit rate">0</rattr>
-            <rattr name="MISO configuration when inactive">-1</rattr>
-            <rattr name="MOSI configuration on initialization">0</rattr>
-            <rattr name="MOSI configuration on uninitialization">0</rattr>
-            <rattr name="SCLK configuration on initialization">0</rattr>
-            <rattr name="SCLK configuration on uninitialization">0</rattr>
-            <io_usage>
-                <uattr name="MISO pin/0000"></uattr>
-                <uattr name="MOSI pin/0000"></uattr>
-                <uattr name="SCLK pin/0000"></uattr>
-            </io_usage>
-        </resource_ref>
-        <resource_ref name="Signal Observation" enabled="0"/>
-        <resource_ref name="System CPU Alert" enabled="1"/>
-        <resource_ref name="System Event Trigger" enabled="0"/>
-        <resource_ref name="TDC" enabled="0"/>
-        <resource_ref name="Timer 0" enabled="0"/>
-        <resource_ref name="Timer 0 Event Trigger" enabled="0"/>
-        <resource_ref name="Timer 1" enabled="0"/>
-        <resource_ref name="Timer 1 Event Trigger" enabled="1"/>
-        <resource_ref name="Timer 2" enabled="0"/>
-        <resource_ref name="Timer 2 Event Trigger" enabled="0"/>
-        <resource_ref name="UART Emulator" enabled="0">
-            <rattr name="RX buffer size">64</rattr>
-            <rattr name="Required idle period before enabling RX">11</rattr>
-            <rattr name="TX buffer size">64</rattr>
-            <io_usage>
-                <uattr name="RX pin/0000"></uattr>
-                <uattr name="TX pin/0000"></uattr>
-            </io_usage>
-        </resource_ref>
-        <sccode name="event0" init_power_mode="2"><![CDATA[// Cancel both event triggers
-evhCancelTrigger(0);
-
-if(state.state == 0){
-    // Configure and start the next measurement
-    i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_ONE_SHOT);
-    state.state = 1;
-
-    // Read the result after ~100 milliseconds + a 20% margin
-    evhSetupTimer1Trigger(0, 120, 2);
-}else{
-    // If a measurement was successfully started during the last execution ...
-    if (state.i2cStatus == 0x0000) {
-
-        // Select the result register
-        U16 result;
-        i2cDeviceReadReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_RESULT; result);
-
-        // If successful ...
-        if (state.i2cStatus == 0x0000) {
-
-            // Convert the result (4-bit exponent + 12-bit mantissa) into 16-bit fixed-point
-            //        U16 exp = result >> 12;
-            //        U16 mant = result << 4;
-            // The exponent is in range 0 to 11
-            //        U16 value = mant >> (11 - exp);
-            output.value = result;
-
-            // Notify the application with the result is below the low threshold or above the high threshold
-            //        if (value < cfg.lowThreshold) {
-            //            fwGenAlertInterrupt();
-            //        }
-            //        if (value > cfg.highThreshold) {
-            //            fwGenAlertInterrupt();
-            //        }
-        } else {
-            // We're using a mix of low-level and high-level I2C procedures in this example, so
-            // clear errors in case the Termination Code runs next
-            state.i2cStatus = 0x0000;
-        }
-    }else {
-        // We're using a mix of low-level and high-level I2C procedures in this example, so
-        // clear errors in case the Termination Code runs next
-        state.i2cStatus = 0x0000;
-    }
-
-    // Configure and start the next measurement
-    i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_ONE_SHOT);
-
-    state.state = 0;
-    // Read the result after ~1000 milliseconds + a 20% margin
-    evhSetupTimer1Trigger(0, 5000, 2);
-
-}]]></sccode>
-        <sccode name="event1" init_power_mode="0"><![CDATA[]]></sccode>
-        <sccode name="event2" init_power_mode="0"><![CDATA[]]></sccode>
-        <sccode name="event3" init_power_mode="0"><![CDATA[]]></sccode>
-        <sccode name="execute" init_power_mode="2"><![CDATA[]]></sccode>
-        <sccode name="initialize" init_power_mode="2"><![CDATA[// Configure and start the next measurement
-i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_ONE_SHOT);
-
-// Read the result after ~100 milliseconds + a 20% margin
-evhSetupTimer1Trigger(0, 120, 2);
-
-state.state = 1;]]></sccode>
-        <sccode name="terminate" init_power_mode="2"><![CDATA[// Shut down the light sensor
-i2cDeviceWriteReg16MsbFirst(ALS_I2C_ADDR, ALS_REG_CFG, ALS_CFG_RESET);
-
-// Cancel the potentially active event trigger
-evhCancelTrigger(0);]]></sccode>
-        <event_trigger active_count="1">0,1,2,3</event_trigger>
-        <tt_iter>run_execute,wait_100ms,run_event0</tt_iter>
-        <tt_struct>output.value,state.i2cStatus</tt_struct>
-        <rtl_struct></rtl_struct>
-        <rtl_task_sel en="0" struct_log_list=""/>
     </task>
 </project>

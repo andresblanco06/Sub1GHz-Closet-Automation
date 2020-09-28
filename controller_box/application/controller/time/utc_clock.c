@@ -50,6 +50,7 @@
  */
 
 #include "utc_clock.h"
+#include "ssf.h"
 
 /*********************************************************************
  * MACROS
@@ -211,6 +212,9 @@ void UTC_timeUpdateHandler(UArg a0)
     // Update the UTC Clock.
     UTC_clockUpdate(elapsedMSec);
   }
+
+  Ssf_heartbeat();
+
 }
 
 /*********************************************************************

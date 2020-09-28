@@ -442,6 +442,8 @@ void Ssf_init(void *sem)
     /* Initialize the LEDs */
     LED_Params ledParams;
     LED_Params_init(&ledParams);
+    ledParams.blinkPeriod = 10000;
+    ledParams.brightness = 50;
     gGreenLedHandle = LED_open(CONFIG_LED_GREEN, &ledParams);
     // Removes unused var warning
     (void) gGreenLedHandle;
@@ -449,6 +451,10 @@ void Ssf_init(void *sem)
 
     // Blink to indicate the application started up correctly
     LED_startBlinking(gRedLedHandle, 500, 3);
+
+//    LED_stopBlinking(gGreenLedHandle);
+//    LED_setBrightnessLevel(gGreenLedHandle, 50U);
+//    LED_startBlinking(gGreenLedHandle, 2000, LED_BLINK_FOREVER);
 #endif /* POWER_MEAS */
 
     CUI_registerMenu(ssfCuiHndl, &ssfMainMenu);
@@ -544,7 +550,7 @@ void Ssf_processEvents(void)
             }
             else
             {   /* Send LED toggle request to identify collector */
-                Sensor_sendIdentifyLedRequest();
+//                Sensor_sendIdentifyLedRequest();
             }
         }
 
@@ -689,8 +695,13 @@ void Ssf_networkUpdate(bool rejoined,
         }
 
 #ifndef POWER_MEAS
-        LED_stopBlinking(gRedLedHandle);
-        LED_setOn(gRedLedHandle, LED_BRIGHTNESS_MAX);
+//        LED_stopBlinking(gGreenLedHandle);
+//        LED_setOff(gGreenLedHandle);
+
+//        LED_stopBlinking(gRedLedHandle);
+//        LED_setBrightnessLevel(gRedLedHandle, 10U);
+//        LED_startBlinking(gRedLedHandle, 2000, LED_BLINK_FOREVER);
+
 #endif /* !POWER_MEAS */
         led1State = true;
     }
@@ -1627,22 +1638,24 @@ int16_t Ssf_readTempSensor(void)
  */
 bool Ssf_toggleLED(void)
 {
-    if(led1State == true)
-    {
-        led1State = false;
-#ifndef POWER_MEAS
-        LED_stopBlinking(gRedLedHandle);
-        LED_setOff(gRedLedHandle);
-#endif /* !POWER_MEAS */
-    }
-    else
-    {
-        led1State = true;
-#ifndef POWER_MEAS
-        LED_stopBlinking(gRedLedHandle);
-        LED_setOn(gRedLedHandle, LED_BRIGHTNESS_MAX);
-#endif /* !POWER_MEAS */
-    }
+//    LED_stopBlinking(gRedLedHandle);
+//    LED_startBlinking(gRedLedHandle, 1000, 2);
+//    if(led1State == true)
+//    {
+//        led1State = false;
+//#ifndef POWER_MEAS
+//        LED_stopBlinking(gRedLedHandle);
+//        LED_setOff(gRedLedHandle);
+//#endif /* !POWER_MEAS */
+//    }
+//    else
+//    {
+//        led1State = true;
+//#ifndef POWER_MEAS
+//        LED_stopBlinking(gRedLedHandle);
+//        LED_setOn(gRedLedHandle, 20U);
+//#endif /* !POWER_MEAS */
+//    }
 
     return(led1State);
 }
@@ -1658,8 +1671,8 @@ void Ssf_OnLED(void)
     {
         led1State = true;
 #ifndef POWER_MEAS
-        LED_stopBlinking(gRedLedHandle);
-        LED_setOn(gRedLedHandle, LED_BRIGHTNESS_MAX);
+//        LED_stopBlinking(gRedLedHandle);
+//        LED_setOn(gRedLedHandle, LED_BRIGHTNESS_MAX);
 #endif /* !POWER_MEAS */
     }
 }
@@ -1675,8 +1688,8 @@ void Ssf_OffLED(void)
     {
         led1State = false;
 #ifndef POWER_MEAS
-        LED_stopBlinking(gRedLedHandle);
-        LED_setOff(gRedLedHandle);
+//        LED_stopBlinking(gRedLedHandle);
+//        LED_setOff(gRedLedHandle);
 #endif /* !POWER_MEAS */
     }
 }

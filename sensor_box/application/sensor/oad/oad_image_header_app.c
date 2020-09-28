@@ -71,7 +71,7 @@
   #define BOUNDARY_SEG_LEN   0x18 //!< Length of the boundary segment */
 #endif
 
-#define SOFTWARE_VER            {'0', '0', '0', '1'}
+#define SOFTWARE_VER            {'0', '0', '0', '3'}
 
 #ifdef DeviceFamily_CC26X2
 #define    OAD_WIRELESS_TECH_TIMAC  OAD_WIRELESS_TECH_TIMAC_2_4G     //!< Wireless protocol type BLE/TI-MAC/ZIGBEE etc. */

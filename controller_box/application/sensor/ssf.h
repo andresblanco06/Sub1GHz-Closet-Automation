@@ -412,7 +412,7 @@ extern int16_t Ssf_readTempSensor(void);
  * @return      state of LED after this call: 0 is off, 1 is on
  */
 extern bool Ssf_toggleLED(void);
-
+extern bool Ssf_heartbeat(void);
 /*!
  * @brief       The application calls this function to switch on LED.
  */

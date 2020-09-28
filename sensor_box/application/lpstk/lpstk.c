@@ -149,7 +149,7 @@ void Lpstk_init(void *evntHandle, Lpstk_scCb scTaskCb)
 #else
     Lpstk_openHumidityTempSensor();
     Lpstk_openLightSensor();
-    Lpstk_openAirQualitySensor();
+//    Lpstk_openAirQualitySensor();
 #endif
 }
 
@@ -273,8 +273,7 @@ void Lpstk_processEvents(void)
     {
         processSensorRead((Lpstk_SensorMask)(LPSTK_HUMIDITY |
                                             LPSTK_TEMPERATURE |
-                                            LPSTK_LIGHT |
-                                            LPSTK_AIR_QUALITY), false);
+                                            LPSTK_LIGHT), false);
 
         // Acknowledge the ALERT event
         scifAckAlertEvents();
@@ -421,7 +420,7 @@ static void processSensorRead(Lpstk_SensorMask sensors, bool shutdown)
 {
     /* Try to power up and open the sensors
      * if they are not already powered up */
-    powerUpSensors(sensors);
+//    powerUpSensors(sensors);
     if(sensors & LPSTK_HUMIDITY)
     {
         Lpstk_readHumiditySensor(&lpstkSensors.humidity);

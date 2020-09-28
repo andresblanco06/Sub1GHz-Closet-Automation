@@ -248,6 +248,7 @@ static const NVINTF_itemID_t nvResetId = NVID_RESET;
 static bool started = false;
 
 static bool led1State = false;
+static bool led2State = false;
 
 CUI_clientHandle_t ssfCuiHndl;
 #if !defined(POWER_MEAS)
@@ -1691,6 +1692,28 @@ bool Ssf_toggleLED(void)
     }
 
     return(led1State);
+}
+
+bool Ssf_heartbeat(void)
+{
+    if(led2State == true)
+    {
+        led2State = false;
+#ifndef POWER_MEAS
+        LED_stopBlinking(gGreenLedHandle);
+        LED_setOff(gGreenLedHandle);
+#endif /* !POWER_MEAS */
+    }
+    else
+    {
+        led2State = true;
+#ifndef POWER_MEAS
+        LED_stopBlinking(gGreenLedHandle);
+        LED_setOn(gGreenLedHandle, LED_BRIGHTNESS_MAX);
+#endif /* !POWER_MEAS */
+    }
+
+    return(led2State);
 }
 
 /*!

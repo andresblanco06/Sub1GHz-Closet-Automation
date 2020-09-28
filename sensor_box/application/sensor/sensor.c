@@ -82,6 +82,8 @@
 
 #ifdef LPSTK
 #include "lpstk/lpstk.h"
+#include <driverlib/aon_batmon.h>
+
 #endif /* LPSTK */
 
 #include "cui.h"
@@ -213,6 +215,9 @@ STATIC Smsgs_tempSensorField_t tempSensor =
  is set in frameControl.
  */
 STATIC Smsgs_lightSensorField_t lightSensor =
+    { 0 };
+
+STATIC Smsgs_batteryfield_t batterySensor =
     { 0 };
 
 /*!
@@ -491,10 +496,11 @@ void Sensor_init(void)
 #endif
 #ifdef LPSTK
     configSettings.frameControl |= Smsgs_dataFields_humiditySensor   |
-                                   Smsgs_dataFields_lightSensor      ;
+                                   Smsgs_dataFields_lightSensor      |
+                                   Smsgs_dataFields_batterySensor;
 #endif /* LPSTK */
 #ifdef CLOSET
-    configSettings.frameControl |= Smsgs_dataFields_airQuality;
+//    configSettings.frameControl |= Smsgs_dataFields_airQuality;
 #endif /* CLOSET */
     configSettings.frameControl |= Smsgs_dataFields_msgStats;
     configSettings.frameControl |= Smsgs_dataFields_configSettings;
@@ -544,6 +550,7 @@ void Sensor_init(void)
 #endif
     /* This initializes all LPSTK's sensors, LEDs, and Buttons */
     Lpstk_init(sem, lpstkScCb);
+    AONBatMonEnable();
 
 #ifndef CLOSET
     /* Set up a periodic read for sensors specified by the sensor mask */
@@ -762,6 +769,8 @@ void Sensor_process(void)
 
         /* Process Sensor Reading Message Event */
         processSensorMsgEvt();
+
+        Ssf_toggleLED();
 #endif //SENSOR_TEST_RAMP_DATA_SIZE
 #ifdef FEATURE_SECURE_COMMISSIONING
         }
@@ -1225,8 +1234,8 @@ static void dataIndCB(ApiMac_mcpsDataInd_t *pDataInd)
         switch(cmdId)
         {
             case Smsgs_cmdIds_configReq:
-                processConfigRequest(pDataInd);
-                Sensor_msgStats.configRequests++;
+//                processConfigRequest(pDataInd);
+//                Sensor_msgStats.configRequests++;
                 break;
 
             case Smsgs_cmdIds_trackingReq:
@@ -1480,6 +1489,11 @@ static void processSensorMsgEvt(void)
         memcpy(&sensor.lightSensor, &lightSensor,
                sizeof(Smsgs_lightSensorField_t));
     }
+    if(sensor.frameControl & Smsgs_dataFields_batterySensor)
+    {
+        memcpy(&sensor.batterySensor, &batterySensor,
+               sizeof(Smsgs_batteryfield_t));
+    }
     if(sensor.frameControl & Smsgs_dataFields_humiditySensor)
     {
         memcpy(&sensor.humiditySensor, &humiditySensor,
@@ -1552,10 +1566,11 @@ static void readSensors(void)
     humiditySensor.temp = Lpstk_getTemperature();
     humiditySensor.humidity = Lpstk_getHumidity();
     lightSensor.rawData = Lpstk_getLux();
-    Lpstk_AirQuality airQuality;
-    Lpstk_getAirQuality(&airQuality);
-    airQualitySensor.co2 = airQuality.co2;
-    airQualitySensor.tvoc = airQuality.tvoc;
+    batterySensor.voltage = (uint32_t) (AONBatMonBatteryVoltageGet() * 125) >> 5;
+//    Lpstk_AirQuality airQuality;
+//    Lpstk_getAirQuality(&airQuality);
+//    airQualitySensor.co2 = airQuality.co2;
+//    airQualitySensor.tvoc = airQuality.tvoc;
 #else
     hallEffectSensor.flux = Lpstk_getMagFlux();
     Lpstk_Accelerometer accel;
@@ -1591,6 +1606,10 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
     if(pMsg->frameControl & Smsgs_dataFields_lightSensor)
     {
         len += SMSGS_SENSOR_LIGHT_LEN;
+    }
+    if(pMsg->frameControl & Smsgs_dataFields_batterySensor)
+    {
+        len += sizeof(Smsgs_batteryfield_t);;
     }
     if(pMsg->frameControl & Smsgs_dataFields_humiditySensor)
     {
@@ -1655,6 +1674,7 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
         {
             pBuf = Util_bufferFloat(pBuf, pMsg->lightSensor.rawData);
         }
+
         if(pMsg->frameControl & Smsgs_dataFields_humiditySensor)
         {
             pBuf = Util_bufferFloat(pBuf, pMsg->humiditySensor.temp);
@@ -1707,6 +1727,11 @@ static bool sendSensorMessage(ApiMac_sAddr_t *pDstAddr, Smsgs_sensorMsg_t *pMsg)
             pBuf = Util_bufferUint16(pBuf, pMsg->airQualitySensor.co2);
             pBuf = Util_bufferUint16(pBuf, pMsg->airQualitySensor.tvoc);
 
+        }
+        if(pMsg->frameControl & Smsgs_dataFields_batterySensor)
+        {
+            pBuf = Util_bufferUint32(pBuf,
+                                     pMsg->batterySensor.voltage);
         }
 #endif
 #ifdef LPSTK
@@ -1968,11 +1993,16 @@ static uint16_t validateFrameControl(uint16_t frameControl)
     {
         newFrameControl |= Smsgs_dataFields_humiditySensor;
     }
+    if(frameControl & Smsgs_dataFields_batterySensor)
+    {
+        newFrameControl |= Smsgs_dataFields_batterySensor;
+    }
 #ifdef CLOSET
     if(frameControl & Smsgs_dataFields_airQuality)
     {
         newFrameControl |= Smsgs_dataFields_airQuality;
     }
+
 #endif
 #ifdef LPSTK
     if(frameControl & Smsgs_dataFields_hallEffectSensor)
